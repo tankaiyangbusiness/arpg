@@ -1,0 +1,3387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Loot Lab</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #09111f;
+            --bg-2: #111c31;
+            --panel: rgba(12, 20, 35, 0.88);
+            --panel-strong: rgba(18, 28, 48, 0.96);
+            --line: rgba(180, 208, 255, 0.14);
+            --text: #edf4ff;
+            --muted: #9fb0ca;
+            --accent: #7bd6ff;
+            --accent-2: #ffcb6b;
+            --good: #7bed9f;
+            --warn: #ffc26b;
+            --normal: #e7ecf5;
+            --magic: #6f8fff;
+            --rare: #e8e24a;
+            --unique: #ff7f3f;
+            --god: #ff4d4d;
+            --shadow: 0 24px 72px rgba(0, 0, 0, 0.42);
+            --radius: 18px;
+            --radius-sm: 12px;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body { min-height: 100%; }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", "Trebuchet MS", "Helvetica Neue", Arial, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(122, 214, 255, 0.18), transparent 28%),
+                radial-gradient(circle at right 15%, rgba(255, 205, 120, 0.14), transparent 24%),
+                linear-gradient(160deg, var(--bg), var(--bg-2) 58%, #070d18 100%);
+            color: var(--text);
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 42px 42px;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent 90%);
+            opacity: 0.55;
+        }
+
+        .app {
+            width: min(1600px, calc(100vw - 32px));
+            margin: 16px auto 28px;
+        }
+
+        .hero {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: end;
+            padding: 18px 22px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: linear-gradient(180deg, rgba(20, 32, 56, 0.88), rgba(9, 15, 27, 0.92));
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+        }
+
+        .hero h1 {
+            margin: 0 0 8px;
+            font-size: clamp(28px, 3vw, 44px);
+            letter-spacing: 0.02em;
+        }
+
+        .hero p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.5;
+            max-width: 78ch;
+        }
+
+        .hero-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .data-load-error {
+            margin: 0 0 16px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 77, 77, 0.4);
+            background: rgba(255, 77, 77, 0.1);
+            color: #ffdede;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .data-load-error strong {
+            display: block;
+            margin-bottom: 4px;
+            color: #ff8080;
+            font-size: 14px;
+        }
+
+        .data-load-error code {
+            padding: 1px 6px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            font-size: 12px;
+        }
+
+        .view-switch {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 0 0 16px;
+        }
+
+        .view-button.active {
+            background: linear-gradient(180deg, rgba(123,214,255,0.28), rgba(123,214,255,0.12));
+            border-color: rgba(123, 214, 255, 0.55);
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .badge {
+            padding: 10px 14px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: rgba(255,255,255,0.04);
+            color: var(--muted);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 320px minmax(0, 1fr) 360px;
+            gap: 16px;
+            align-items: start;
+        }
+
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--panel);
+            box-shadow: var(--shadow);
+            overflow: clip;
+        }
+
+        .panel-header {
+            padding: 14px 16px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .panel-header h2 {
+            margin: 0;
+            font-size: 15px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #d8e6ff;
+        }
+
+        .panel-body {
+            padding: 16px;
+        }
+
+        .controls {
+            display: grid;
+            gap: 12px;
+        }
+
+        .field {
+            display: grid;
+            gap: 6px;
+        }
+
+        .field label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+        }
+
+        input, select, button, textarea {
+            font: inherit;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(160, 187, 230, 0.18);
+            background: rgba(9, 14, 25, 0.85);
+            color: var(--text);
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: rgba(123, 214, 255, 0.55);
+            box-shadow: 0 0 0 3px rgba(123, 214, 255, 0.12);
+        }
+
+        input[type="range"] {
+            padding: 0;
+            height: 30px;
+            background: transparent;
+        }
+
+        .range-row {
+            display: grid;
+            grid-template-columns: 1fr 72px;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .inline-hint {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+
+        .button-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .button-row.three {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        button {
+            border: 1px solid rgba(160, 187, 230, 0.18);
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+            color: var(--text);
+            border-radius: 12px;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+        }
+
+        button:hover { transform: translateY(-1px); border-color: rgba(123, 214, 255, 0.45); }
+        button:active { transform: translateY(0); }
+
+        .primary {
+            background: linear-gradient(180deg, rgba(123,214,255,0.28), rgba(123,214,255,0.12));
+            border-color: rgba(123, 214, 255, 0.35);
+        }
+
+        .ghost {
+            background: rgba(255,255,255,0.03);
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .card {
+            padding: 14px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(160, 187, 230, 0.14);
+        }
+
+        .card .label {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .card .value {
+            margin-top: 6px;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .workbench {
+            display: grid;
+            gap: 16px;
+        }
+
+        .subgrid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 16px;
+        }
+
+        .list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .scrollable-list {
+            max-height: 340px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .scrollable-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .scrollable-list::-webkit-scrollbar-thumb {
+            background: rgba(160, 187, 230, 0.28);
+            border-radius: 999px;
+        }
+
+        .scrollable-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .inventory-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .toolbar-sort {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toolbar-sort label {
+            font-size: 12px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .bulk-delete-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+            margin-left: auto;
+        }
+
+        .bulk-delete-btn {
+            padding: 6px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            cursor: pointer;
+            border: 1px solid rgba(160, 187, 230, 0.25);
+            background: rgba(255,255,255,0.03);
+            color: var(--text);
+            transition: transform 120ms ease, background 120ms ease;
+        }
+
+        .bulk-delete-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .bulk-delete-btn.rarity-normal { border-color: var(--normal); }
+        .bulk-delete-btn.rarity-magic { border-color: var(--magic); }
+        .bulk-delete-btn.rarity-rare { border-color: var(--rare); }
+        .bulk-delete-btn.rarity-unique { border-color: var(--unique); }
+        .bulk-delete-btn.rarity-god { border-color: var(--god); }
+
+        .bulk-delete-btn.armed {
+            background: rgba(255, 77, 77, 0.22);
+            border-color: rgba(255, 77, 77, 0.8);
+            color: #ffdede;
+        }
+
+        .bulk-delete-btn.armed::after {
+            content: " \26A0";
+        }
+
+        .loot-item {
+            padding: 12px 12px 12px 14px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(160, 187, 230, 0.13);
+            cursor: pointer;
+            transition: border-color 120ms ease, transform 120ms ease, background 120ms ease;
+        }
+
+        .loot-item:hover {
+            transform: translateY(-1px);
+            border-color: rgba(123, 214, 255, 0.38);
+        }
+
+        .loot-item.selected {
+            border-color: rgba(123, 214, 255, 0.72);
+            background: rgba(123, 214, 255, 0.09);
+        }
+
+        .loot-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: start;
+        }
+
+        .loot-name {
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .loot-meta, .loot-flavor {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .rarity-normal { color: var(--normal); }
+        .rarity-magic { color: var(--magic); }
+        .rarity-rare { color: var(--rare); }
+        .rarity-unique { color: var(--unique); }
+        .rarity-god { color: var(--god); }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 11px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .pill.good { color: #1d381f; background: rgba(123, 237, 159, 0.9); border-color: transparent; }
+        .pill.warn { color: #3f2b0c; background: rgba(255, 194, 107, 0.9); border-color: transparent; }
+        .pill.magic { color: #101a3a; background: rgba(111, 143, 255, 0.9); border-color: transparent; }
+        .pill.rare { color: #302c0a; background: rgba(232, 226, 74, 0.92); border-color: transparent; }
+        .pill.unique { color: #351405; background: rgba(255, 127, 63, 0.92); border-color: transparent; }
+        .pill.god { color: #fff2f2; background: rgba(255, 77, 77, 0.94); border-color: transparent; }
+
+        .detail {
+            display: grid;
+            gap: 14px;
+        }
+
+        .detail-head {
+            display: grid;
+            gap: 8px;
+        }
+
+        .detail-name {
+            font-size: 22px;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        .detail-line {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .mod-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .mod {
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(160, 187, 230, 0.12);
+        }
+
+        .mod strong {
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .compare {
+            display: grid;
+            gap: 8px;
+            padding: 12px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(160, 187, 230, 0.12);
+        }
+
+        .history-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .history-item {
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(160, 187, 230, 0.12);
+            display: grid;
+            gap: 6px;
+        }
+
+        .tiny {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.45;
+        }
+
+        .mono {
+            font-family: Consolas, "SFMono-Regular", Menlo, Monaco, monospace;
+            word-break: break-word;
+        }
+
+        .section-title {
+            margin: 0 0 10px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #cfe3ff;
+        }
+
+        .split {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .table th, .table td {
+            text-align: left;
+            padding: 8px 6px;
+            border-bottom: 1px solid rgba(160, 187, 230, 0.12);
+            vertical-align: top;
+        }
+
+        .table th {
+            color: var(--muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 11px;
+        }
+
+        .stack {
+            display: grid;
+            gap: 14px;
+        }
+
+        .divider {
+            height: 1px;
+            background: rgba(160, 187, 230, 0.12);
+            margin: 2px 0;
+        }
+
+        .footer-note {
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .tag-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #dfeaff;
+            background: rgba(123,214,255,0.08);
+            border: 1px solid rgba(123,214,255,0.24);
+        }
+
+        .codex-layout {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 16px;
+        }
+
+        .codex-table-wrap {
+            max-height: 520px;
+            overflow: auto;
+            border: 1px solid rgba(160, 187, 230, 0.12);
+            border-radius: 14px;
+            background: rgba(255,255,255,0.025);
+        }
+
+        .empty-state {
+            padding: 18px;
+            border-radius: 14px;
+            border: 1px dashed rgba(160, 187, 230, 0.18);
+            color: var(--muted);
+            background: rgba(255,255,255,0.02);
+        }
+
+        .mod-inline {
+            display: grid;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .mod-inline .mod-line {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+            font-size: 11px;
+            color: #dce7f7;
+        }
+
+        .mod-inline .mod-role {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 6px;
+            border-radius: 999px;
+            background: rgba(123,214,255,0.10);
+            border: 1px solid rgba(123,214,255,0.22);
+            color: #cfe9ff;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 10px;
+        }
+
+        .mod-inline .mod-tier {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 6px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.09);
+            color: var(--accent-2);
+            font-size: 10px;
+        }
+
+        .item-tooltip {
+            position: fixed;
+            z-index: 50;
+            max-width: min(360px, calc(100vw - 24px));
+            pointer-events: none;
+            filter: drop-shadow(0 24px 48px rgba(0,0,0,0.45));
+        }
+
+        .item-tooltip-inner {
+            border-radius: 10px;
+            border: 1px solid rgba(160, 187, 230, 0.20);
+            border-top: 2px solid var(--tip-accent, var(--normal));
+            background: linear-gradient(180deg, rgba(13, 21, 36, 0.98), rgba(7, 12, 22, 0.98));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+            overflow: hidden;
+            padding: 12px 16px 14px;
+        }
+
+        .item-tooltip-inner.rarity-normal { --tip-accent: var(--normal); }
+        .item-tooltip-inner.rarity-magic { --tip-accent: var(--magic); }
+        .item-tooltip-inner.rarity-rare { --tip-accent: var(--rare); }
+        .item-tooltip-inner.rarity-unique { --tip-accent: var(--unique); }
+        .item-tooltip-inner.rarity-god { --tip-accent: var(--god); }
+
+        .item-tooltip-header {
+            text-align: center;
+            padding-bottom: 10px;
+        }
+
+        .item-tooltip-name {
+            font-size: 16px;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
+        .item-tooltip-subtitle {
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .item-tooltip-flavor {
+            font-style: italic;
+            margin-top: 4px;
+            color: var(--tip-accent, var(--muted));
+        }
+
+        .poe-mod-divider {
+            height: 1px;
+            margin: 8px 0;
+            background: linear-gradient(90deg, transparent, rgba(160, 187, 230, 0.35), transparent);
+        }
+
+        .poe-mod-section {
+            display: grid;
+            gap: 4px;
+            text-align: center;
+        }
+
+        .poe-mod-line {
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            gap: 6px;
+            color: #e7f0ff;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .poe-mod-range {
+            color: var(--muted);
+            font-style: italic;
+            font-size: 12px;
+        }
+
+        .poe-base-stat {
+            color: #cfe0ff;
+        }
+
+        .poe-requirements {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .poe-mod-role {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+            border: 1px solid rgba(160, 187, 230, 0.3);
+            border-radius: 4px;
+            padding: 0 4px;
+        }
+
+        .poe-mod-tier {
+            color: var(--accent-2);
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .item-tooltip-empty {
+            color: var(--muted);
+            padding: 4px 0 0;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .item-tooltip-hint {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed rgba(160, 187, 230, 0.18);
+            text-align: center;
+            color: var(--accent-2);
+        }
+
+        .item-rail {
+            display: grid;
+            gap: 10px;
+        }
+
+        .poe-card {
+            position: relative;
+            border: 1px solid rgba(160, 187, 230, 0.14);
+            border-radius: 14px;
+            background: linear-gradient(180deg, rgba(17, 26, 42, 0.94), rgba(9, 14, 25, 0.96));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+            transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+        }
+
+        .poe-card:hover {
+            border-color: rgba(123, 214, 255, 0.56);
+            box-shadow: 0 0 0 1px rgba(123, 214, 255, 0.18), 0 18px 32px rgba(0, 0, 0, 0.24);
+            transform: translateY(-1px);
+        }
+
+        .poe-card .loot-name {
+            font-size: 15px;
+        }
+
+        .poe-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 4px;
+            border-radius: 14px 0 0 14px;
+            background: rgba(207, 216, 230, 0.55);
+        }
+
+        .poe-card.rarity-magic-card::before { background: var(--magic); }
+        .poe-card.rarity-rare-card::before { background: var(--rare); }
+        .poe-card.rarity-unique-card::before { background: var(--unique); }
+        .poe-card.rarity-god-card::before { background: var(--god); }
+
+        .loot-card-footer {
+            display: grid;
+            gap: 6px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(160, 187, 230, 0.12);
+        }
+
+        .section-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .collapse-toggle {
+            border: 1px solid rgba(160, 187, 230, 0.18);
+            border-radius: 999px;
+            background: rgba(255,255,255,0.02);
+            color: var(--muted);
+            padding: 6px 10px;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .collapse-body.is-collapsed {
+            display: none;
+        }
+
+        .inventory-tab-bar {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 6px;
+            margin-top: 8px;
+            padding-bottom: 6px;
+            overflow-x: auto;
+            scrollbar-width: thin;
+        }
+
+        .inventory-tab-bar::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .inventory-tab-bar::-webkit-scrollbar-thumb {
+            background: rgba(160, 187, 230, 0.28);
+            border-radius: 999px;
+        }
+
+        .inventory-tab-button {
+            flex: 0 0 auto;
+            min-width: 40px;
+            padding: 6px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(160, 187, 230, 0.18);
+            background: rgba(255,255,255,0.03);
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+        }
+
+        .inventory-tab-button:hover {
+            border-color: rgba(123, 214, 255, 0.45);
+            color: var(--text);
+        }
+
+        .inventory-tab-button.active {
+            background: linear-gradient(180deg, rgba(123,214,255,0.28), rgba(123,214,255,0.12));
+            border-color: rgba(123, 214, 255, 0.55);
+            color: var(--text);
+        }
+
+        .inventory-tab-button .tab-count {
+            margin-left: 4px;
+            color: var(--muted);
+            font-weight: 400;
+            font-size: 10px;
+        }
+
+        .bagpack-grid {
+            display: grid;
+            grid-template-columns: repeat(12, minmax(0, 1fr));
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .bagpack-slot {
+            position: relative;
+            min-height: 54px;
+            border-radius: 10px;
+            border: 1px solid rgba(160, 187, 230, 0.15);
+            background: linear-gradient(180deg, rgba(18, 24, 35, 0.8), rgba(8, 11, 18, 0.9));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--muted);
+            overflow: hidden;
+            cursor: pointer;
+            transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+        }
+
+        .bagpack-slot:hover {
+            border-color: rgba(123, 214, 255, 0.5);
+            transform: translateY(-1px);
+            box-shadow: 0 0 0 1px rgba(123, 214, 255, 0.18);
+        }
+
+        .bagpack-slot.empty {
+            opacity: 0.45;
+            background: linear-gradient(180deg, rgba(18, 24, 35, 0.36), rgba(8, 11, 18, 0.66));
+        }
+
+        .bagpack-slot.rarity-normal { border-color: rgba(231, 236, 245, 0.22); }
+        .bagpack-slot.rarity-magic { border-color: rgba(111, 143, 255, 0.55); }
+        .bagpack-slot.rarity-rare { border-color: rgba(232, 226, 74, 0.6); }
+        .bagpack-slot.rarity-unique { border-color: rgba(255, 127, 63, 0.6); }
+        .bagpack-slot.rarity-god { border-color: rgba(255, 77, 77, 0.65); }
+
+        .bagpack-slot .item-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .item-icon-emoji {
+            font-size: 1.55rem;
+            line-height: 1;
+            display: inline-block;
+            filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55));
+        }
+
+        .item-icon-emoji.icon-weapon { transform: scale(1.05); }
+        .item-icon-emoji.icon-ring { transform: scale(1.05); }
+        .item-icon-emoji.icon-amulet { transform: scale(1.02); }
+        .item-icon-emoji.icon-belt { transform: scale(0.95); }
+        .item-icon-emoji.icon-currency,
+        .item-icon-emoji.icon-consumable,
+        .item-icon-emoji.icon-special,
+        .item-icon-emoji.icon-misc {
+            font-size: 1.3rem;
+            filter: none;
+            color: var(--accent-2);
+        }
+
+        .empty-drop-card {
+            padding: 18px;
+            border-radius: 14px;
+            border: 1px dashed rgba(160, 187, 230, 0.22);
+            background: linear-gradient(180deg, rgba(17, 26, 42, 0.68), rgba(9, 14, 25, 0.88));
+            color: var(--muted);
+        }
+
+        @media (max-width: 1320px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .subgrid {
+                grid-template-columns: 1fr;
+            }
+
+            .codex-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .app { width: min(100vw - 16px, 1600px); margin: 8px auto 16px; }
+            .hero { flex-direction: column; align-items: start; }
+            .cards, .stats-grid, .split, .button-row, .button-row.three { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header class="hero">
+            <div>
+                <h1>Loot Lab</h1>
+                <p>
+                    A data-driven loot simulator for monster drops, rarity scaling, equipment generation,
+                    affix rolls, unique and god-tier items, history, and inventory inspection.
+                </p>
+            </div>
+            <div class="hero-badges">
+                <div class="badge">Randomized drops</div>
+                <div class="badge">Quantity + Rarity split</div>
+                <div class="badge">Monster loot tables</div>
+                <div class="badge">Currency Library</div>
+            </div>
+        </header>
+
+        <div class="data-load-error" id="dataLoadError" hidden>
+            <strong>Couldn't load affixes.json.</strong>
+            This page was opened directly as a <code>file://</code> URL, which browsers block from
+            reading local JSON files (a CORS security restriction) — this app has no built-in
+            fallback copy of the affix data by design, to avoid keeping two copies in sync.
+            Serve this folder with any static file server instead, for example:
+            <code>python -m http.server 8080</code> or <code>npx serve .</code>, then open the
+            printed <code>http://localhost:...</code> address, or use an editor extension such as
+            VS Code "Live Server".
+        </div>
+
+        <div class="view-switch" id="viewSwitch">
+            <button class="view-button active" data-view="simulator">Loot Simulator</button>
+            <button class="view-button" data-view="wiki">Wiki</button>
+        </div>
+
+        <section class="view active" data-view-panel="simulator">
+        <main class="grid">
+            <section class="panel">
+                <div class="panel-header">
+                    <h2>Simulation Controls</h2>
+                    <span class="pill good" id="engineStatus">Ready</span>
+                </div>
+                <div class="panel-body controls">
+                    <div class="split">
+                        <div class="field">
+                            <label for="monsterSelect">Monster</label>
+                            <select id="monsterSelect"></select>
+                        </div>
+                        <div class="field">
+                            <label for="areaSelect">Area</label>
+                            <select id="areaSelect"></select>
+                        </div>
+                    </div>
+                    <div class="split">
+                        <div class="field">
+                            <label for="difficultySelect">Difficulty</label>
+                            <select id="difficultySelect"></select>
+                        </div>
+                        <div class="field">
+                            <label for="areaLevelDisplay">Area Level</label>
+                            <input id="areaLevelDisplay" type="text" value="12" readonly />
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label for="quantityRange">Player Quantity</label>
+                        <div class="range-row">
+                            <input id="quantityRange" type="range" min="0" max="300" value="0" />
+                            <input id="quantityValue" type="number" min="0" max="300" value="0" />
+                        </div>
+                        <div class="inline-hint">Controls the number of loot rolls, not the rarity distribution. Keep this at 0 until you want to generate drops.</div>
+                    </div>
+                    <div class="field">
+                        <label for="rarityRange">Player Item Rarity</label>
+                        <div class="range-row">
+                            <input id="rarityRange" type="range" min="0" max="300" value="0" />
+                            <input id="rarityValue" type="number" min="0" max="300" value="0" />
+                        </div>
+                        <div class="inline-hint">Shifts the rarity table toward more valuable item outcomes. Default is 0 until the user chooses to run a simulation.</div>
+                    </div>
+                    <div class="split">
+                        <div class="field">
+                            <label for="rollsInput">Simulation Runs</label>
+                            <input id="rollsInput" type="number" min="1" max="5000" value="250" />
+                        </div>
+                        <div class="field">
+                            <label for="inventoryCapInput">Inventory Cap</label>
+                            <input id="inventoryCapInput" type="number" min="60" max="1440" step="60" value="1440" />
+                        </div>
+                    </div>
+                    <div class="button-row three">
+                        <button class="primary" id="simulateButton">Simulate</button>
+                        <button class="ghost" id="quickDropButton">Generate Drop</button>
+                        <button class="ghost" id="clearButton">Clear Inventory</button>
+                    </div>
+                    <div class="button-row two">
+                        <button id="exportButton">Export Results</button>
+                        <button id="rerollSeedButton">Reroll Seed</button>
+                    </div>
+                    <div class="divider"></div>
+                    <div>
+                        <div class="section-title">Debug Snapshot</div>
+                        <div class="tiny mono" id="debugSnapshot"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="workbench">
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Simulation Output</h2>
+                        <div class="detail-line" id="runSummaryPills"></div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="cards" id="metricCards"></div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Inventory</h2>
+                        <span class="pill warn" id="inventoryCountPill">0 items</span>
+                    </div>
+                    <div class="panel-body">
+                        <div class="stats-grid" id="statsGrid"></div>
+                        <div class="divider"></div>
+                        <div class="inventory-toolbar" id="inventoryToolbar">
+                            <div class="field toolbar-sort">
+                                <label for="inventorySortSelect">Sort by</label>
+                                <select id="inventorySortSelect">
+                                    <option value="recent">Recently Added</option>
+                                    <option value="type">Type → Slot → Rarity</option>
+                                </select>
+                            </div>
+                            <div class="bulk-delete-group">
+                                <span class="tiny">Bulk delete:</span>
+                                <button type="button" class="bulk-delete-btn rarity-normal" data-bulk-rarity="normal">Normal</button>
+                                <button type="button" class="bulk-delete-btn rarity-magic" data-bulk-rarity="magic">Magic</button>
+                                <button type="button" class="bulk-delete-btn rarity-rare" data-bulk-rarity="rare">Rare</button>
+                                <button type="button" class="bulk-delete-btn rarity-unique" data-bulk-rarity="unique">Unique</button>
+                                <button type="button" class="bulk-delete-btn rarity-god" data-bulk-rarity="god">God</button>
+                            </div>
+                        </div>
+                        <div class="inventory-tab-bar" id="inventoryTabBar"></div>
+                        <div class="list" id="inventoryList"></div>
+                        <div class="divider"></div>
+                        <div class="section-title">Generated Loot (this run)</div>
+                        <div class="list scrollable-list" id="lootList"></div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Inspection &amp; History</h2>
+                    </div>
+                    <div class="panel-body stack">
+                        <div class="detail" id="detailPanel">
+                            <div class="section-title">Item Inspection</div>
+                            <div class="tiny">Select any item from the result list or inventory to inspect its mods, score, and comparison target.</div>
+                        </div>
+                        <div>
+                            <div class="section-title">Top Affixes</div>
+                            <table class="table" id="affixTable"></table>
+                        </div>
+                        <div>
+                            <div class="section-title">Run History</div>
+                            <div class="history-list" id="historyList"></div>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <h2>Export</h2>
+                    <span class="pill rare">Config</span>
+                </div>
+                <div class="panel-body stack">
+                    <div>
+                        <div class="section-title">Export Preview</div>
+                        <textarea id="exportPreview" rows="16" readonly></textarea>
+                    </div>
+                    <div class="footer-note">
+                        This slice focuses on the simulation core first: seeded drop rolls, quantity vs rarity separation,
+                        affix generation, unique and god definitions, inventory tracking, and exportable results.
+                    </div>
+                </div>
+            </section>
+        </main>
+        </section>
+
+        <section class="view" data-view-panel="wiki">
+            <div class="codex-layout">
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Simulation Reference</h2>
+                        <span class="pill good">Live</span>
+                    </div>
+                    <div class="panel-body stack">
+                        <div>
+                            <div class="section-header-row">
+                                <div class="section-title">Rarity Distribution</div>
+                                <button class="collapse-toggle" type="button" data-collapse-target="rarityTableWrap">Collapse</button>
+                            </div>
+                            <div class="collapse-body" id="rarityTableWrap">
+                                <table class="table" id="rarityTable"></table>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="section-header-row">
+                                <div class="section-title">Monster Loot Table</div>
+                                <button class="collapse-toggle" type="button" data-collapse-target="monsterTableWrap">Collapse</button>
+                            </div>
+                            <div class="collapse-body" id="monsterTableWrap">
+                                <table class="table" id="monsterTable"></table>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="section-title">Item Model</div>
+                            <div class="tiny" id="itemModelSummary"></div>
+                        </div>
+                        <div>
+                            <div class="section-title">Affix Rules</div>
+                            <div class="tiny" id="affixSummary"></div>
+                        </div>
+                        <div>
+                            <div class="section-title">Special Item Definitions</div>
+                            <div class="tiny" id="specialSummary"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Equipment Base Catalog</h2>
+                        <span class="pill rare" id="baseItemCountPill">0 bases</span>
+                    </div>
+                    <div class="panel-body stack">
+                        <div>
+                            <div class="section-title">Areas and Progression</div>
+                            <div class="codex-table-wrap">
+                                <table class="table" id="codexAreaTable"></table>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="section-title">Base Equipment</div>
+                            <div class="codex-table-wrap">
+                                <table class="table" id="baseItemTable"></table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Modifier Library</h2>
+                        <span class="pill good" id="modifierCountPill">0 modifiers</span>
+                    </div>
+                    <div class="panel-body stack">
+                        <div>
+                            <div class="section-title">Affix Definitions</div>
+                            <div class="codex-table-wrap">
+                                <table class="table" id="modifierLibraryTable"></table>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="section-title">Selected Base Details</div>
+                            <div id="codexDetail" class="empty-state">Select a base item from the catalog to inspect its level, stat block, tags, implicits, and allowed affix groups.</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Currency Library</h2>
+                        <span class="pill rare" id="currencyCountPill">0 currencies</span>
+                    </div>
+                    <div class="panel-body stack">
+                        <div class="codex-table-wrap">
+                            <table class="table" id="currencyLibraryTable"></table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </div>
+
+    <div id="itemTooltip" class="item-tooltip" hidden></div>
+
+
+
+    <script>
+        (() => {
+            const STORAGE_KEY = "arpg-loot-lab-history-v1";
+            const RARITY_ORDER = ["normal", "magic", "rare", "unique", "god"];
+            const CATEGORY_ORDER = ["equipment", "currency", "potion", "consumable", "miscellaneous", "special"];
+            const SLOT_ORDER = ["weapon", "offhand", "helm", "chest", "gloves", "boots", "ring", "amulet", "belt"];
+            const INVENTORY_COLS = 12;
+            const INVENTORY_ROWS = 5;
+            const SLOTS_PER_TAB = INVENTORY_COLS * INVENTORY_ROWS;
+            const MAX_INVENTORY_TABS = 24;
+            const MAX_INVENTORY_SLOTS = SLOTS_PER_TAB * MAX_INVENTORY_TABS;
+
+            // =====================================================================
+            // DATA: World configuration (areas, monsters, difficulties, rarity model)
+            // =====================================================================
+            const CONFIG = {
+                rarityWeights: {
+                    normal: 8000,
+                    magic: 1500,
+                    rare: 450,
+                    unique: 45,
+                    god: 5
+                },
+                rarityLimits: {
+                    magic: { prefixes: 1, suffixes: 1, prefixChance: [0.85], suffixChance: [0.85] },
+                    rare: { prefixes: 3, suffixes: 3, prefixChance: [1, 0.6, 0.35], suffixChance: [1, 0.6, 0.35], minPrefixes: 1, minSuffixes: 1, minTotal: 3 }
+                },
+                baseLootRolls: 2,
+                categoryWeights: {
+                    equipment: 36,
+                    currency: 26,
+                    potion: 14,
+                    consumable: 14,
+                    miscellaneous: 8,
+                    special: 2
+                },
+                rarityScaling: {
+                    quantityToRolls: 1.0,
+                    rarityBias: {
+                        normal: 0.40,
+                        magic: 0.95,
+                        rare: 1.15,
+                        unique: 1.75,
+                        god: 2.35
+                    }
+                },
+                areas: {
+                    verdant_fields: { name: "Verdant Foothills", level: 12, quantityBonus: 0.00, rarityBonus: 0.00, tags: ["forest", "beasts"], categoryBias: { potion: 6, consumable: 4 } },
+                    abyssal_ruins: { name: "Abyssal Ruins", level: 54, quantityBonus: 0.08, rarityBonus: 0.12, tags: ["ruins", "casters"], categoryBias: { equipment: 6, special: 2 } },
+                    shattered_vault: { name: "Shattered Vault", level: 72, quantityBonus: 0.04, rarityBonus: 0.18, tags: ["vault", "endgame"], categoryBias: { equipment: 10, currency: 6, special: 3 } }
+                },
+                difficulties: {
+                    normal: { name: "Normal", quantityBonus: 0.00, rarityBonus: 0.00 },
+                    veteran: { name: "Cruel", quantityBonus: 0.10, rarityBonus: 0.10 },
+                    nightmare: { name: "Merciless", quantityBonus: 0.18, rarityBonus: 0.20 },
+                    apocalypse: { name: "Apocalypse", quantityBonus: 0.28, rarityBonus: 0.32 }
+                },
+                monsters: {
+                    forest_beast: {
+                        name: "Forest Beast",
+                        type: "normal",
+                        level: 12,
+                        tags: ["beast", "melee"],
+                        baseRolls: 2.4,
+                        quantityBonus: 0.00,
+                        rarityBonus: 0.00,
+                        categoryWeights: { equipment: 42, currency: 24, potion: 15, consumable: 10, miscellaneous: 7, special: 2 },
+                        guaranteed: []
+                    },
+                    elite_arcanist: {
+                        name: "Elite Arcanist",
+                        type: "elite",
+                        level: 54,
+                        tags: ["humanoid", "caster"],
+                        baseRolls: 3.1,
+                        quantityBonus: 0.10,
+                        rarityBonus: 0.10,
+                        categoryWeights: { equipment: 48, currency: 24, potion: 10, consumable: 8, miscellaneous: 5, special: 5 },
+                        guaranteed: [{ category: "currency", itemId: "silver_cache", min: 1, max: 2, chance: 0.28 }]
+                    },
+                    ancient_raider: {
+                        name: "Ancient Raider",
+                        type: "rare",
+                        level: 60,
+                        tags: ["humanoid", "ranged"],
+                        baseRolls: 3.8,
+                        quantityBonus: 0.14,
+                        rarityBonus: 0.18,
+                        categoryWeights: { equipment: 52, currency: 22, potion: 7, consumable: 8, miscellaneous: 4, special: 7 },
+                        guaranteed: [{ category: "equipment", itemId: "forced_equipment", min: 1, max: 1, chance: 0.2 }]
+                    },
+                    void_warden: {
+                        name: "Void Warden",
+                        type: "boss",
+                        level: 72,
+                        tags: ["boss", "void"],
+                        baseRolls: 6.5,
+                        quantityBonus: 0.24,
+                        rarityBonus: 0.28,
+                        categoryWeights: { equipment: 60, currency: 18, potion: 5, consumable: 4, miscellaneous: 2, special: 11 },
+                        guaranteed: [
+                            { category: "equipment", itemId: "forced_equipment", min: 1, max: 2, chance: 0.82 },
+                            { category: "currency", itemId: "boss_cache", min: 1, max: 3, chance: 0.88 }
+                        ]
+                    },
+                    mirror_hydra: {
+                        name: "Mirror Hydra",
+                        type: "special",
+                        level: 78,
+                        tags: ["beast", "mirrored", "special"],
+                        baseRolls: 4.2,
+                        quantityBonus: 0.16,
+                        rarityBonus: 0.40,
+                        categoryWeights: { equipment: 42, currency: 18, potion: 3, consumable: 3, miscellaneous: 4, special: 30 },
+                        guaranteed: [{ category: "special", itemId: "arcane_paradox", min: 1, max: 1, chance: 0.46 }]
+                    }
+                }
+            };
+
+            // =====================================================================
+            // DATA: Base item templates (weapons, armor, accessories)
+            // =====================================================================
+            const BASE_ITEMS = [
+                { id: "rusted_sword", name: "Rusted Sword", slot: "weapon", itemType: "one-hand sword", weight: 10, minLevel: 1, tags: ["weapon", "melee", "sword"], archetype: "weapon", baseStats: { physicalMin: 5, physicalMax: 10, attackSpeed: 1.45, critChance: 5 }, implicitModifiers: ["+10 Accuracy Rating"], requirements: { strength: 12, dexterity: 8 }, allowedAffixGroups: ["weapon_physical", "attack_speed", "critical_chance", "critical_multiplier", "life", "fire_damage_flat", "fire_damage_percent", "cold_damage_flat", "cold_damage_percent", "lightning_damage_flat", "lightning_damage_percent"] },
+                { id: "war_axe", name: "War Axe", slot: "weapon", itemType: "one-hand axe", weight: 9, minLevel: 6, tags: ["weapon", "melee", "axe"], archetype: "weapon", baseStats: { physicalMin: 8, physicalMax: 16, attackSpeed: 1.25, critChance: 5 }, implicitModifiers: ["+12% chance to Bleed on Hit"], requirements: { strength: 18 }, allowedAffixGroups: ["weapon_physical", "attack_speed", "critical_chance", "critical_multiplier", "life", "fire_damage_flat", "fire_damage_percent", "cold_damage_flat", "cold_damage_percent", "lightning_damage_flat", "lightning_damage_percent"] },
+                { id: "hunter_bow", name: "Hunter Bow", slot: "weapon", itemType: "bow", weight: 8, minLevel: 10, tags: ["weapon", "ranged", "bow"], archetype: "weapon", baseStats: { physicalMin: 7, physicalMax: 14, attackSpeed: 1.5, critChance: 6.2 }, implicitModifiers: ["+18 Accuracy Rating"], requirements: { dexterity: 24 }, allowedAffixGroups: ["weapon_physical", "attack_speed", "critical_chance", "critical_multiplier", "life", "fire_damage_flat", "fire_damage_percent", "cold_damage_flat", "cold_damage_percent", "lightning_damage_flat", "lightning_damage_percent"] },
+                { id: "apprentice_wand", name: "Apprentice Wand", slot: "weapon", itemType: "wand", weight: 8, minLevel: 8, tags: ["weapon", "caster", "wand"], archetype: "weapon", baseStats: { physicalMin: 4, physicalMax: 9, attackSpeed: 1.6, critChance: 7.2, spellPower: 12 }, implicitModifiers: ["+12% increased Spell Damage"], requirements: { intelligence: 22 }, allowedAffixGroups: ["weapon_physical", "attack_speed", "critical_chance", "critical_multiplier", "spell_damage", "cast_speed", "mana", "fire_damage_flat", "fire_damage_percent", "cold_damage_flat", "cold_damage_percent", "lightning_damage_flat", "lightning_damage_percent"] },
+                { id: "silk_staff", name: "Silk Staff", slot: "weapon", itemType: "staff", weight: 7, minLevel: 18, tags: ["weapon", "caster", "staff"], archetype: "weapon", baseStats: { physicalMin: 10, physicalMax: 18, attackSpeed: 1.2, critChance: 6.5, spellPower: 18 }, implicitModifiers: ["+14% Chance to Block Spell Damage"], requirements: { intelligence: 34, strength: 20 }, allowedAffixGroups: ["weapon_physical", "attack_speed", "critical_chance", "critical_multiplier", "spell_damage", "cast_speed", "mana", "fire_damage_flat", "fire_damage_percent", "cold_damage_flat", "cold_damage_percent", "lightning_damage_flat", "lightning_damage_percent"] },
+                { id: "stone_shield", name: "Stone Shield", slot: "offhand", itemType: "shield", weight: 8, minLevel: 4, tags: ["shield", "armor", "offhand"], archetype: "offhand", baseStats: { armor: 28, evasion: 12, blockChance: 22 }, implicitModifiers: ["+4% Chance to Block"], requirements: { strength: 14 }, allowedAffixGroups: ["armour", "evasion", "energy_shield", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "life", "mana", "stun_threshold", "life_regen", "mana_regen"] },
+                { id: "iron_helm", name: "Iron Helm", slot: "helm", itemType: "helmet", weight: 9, minLevel: 1, tags: ["armor", "helm"], archetype: "armor", baseStats: { armor: 24, evasion: 8 }, implicitModifiers: ["+10 to Accuracy Rating"], requirements: { strength: 10 }, allowedAffixGroups: ["armour", "evasion", "energy_shield", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "life", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "stun_threshold", "life_regen"] },
+                { id: "plate_mail", name: "Plate Mail", slot: "chest", itemType: "body armour", weight: 8, minLevel: 15, tags: ["armor", "chest"], archetype: "armor", baseStats: { armor: 78, evasion: 16 }, implicitModifiers: ["+8% increased Stun Threshold"], requirements: { strength: 30 }, allowedAffixGroups: ["armour", "evasion", "energy_shield", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "life", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "stun_threshold", "life_regen"] },
+                { id: "grip_gloves", name: "Grip Gloves", slot: "gloves", itemType: "gloves", weight: 8, minLevel: 7, tags: ["armor", "gloves"], archetype: "armor", baseStats: { armor: 18, evasion: 14 }, implicitModifiers: ["+6 Accuracy Rating"], requirements: { dexterity: 12, strength: 10 }, allowedAffixGroups: ["armour", "evasion", "energy_shield", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "life", "attack_speed", "cast_speed", "life_regen"] },
+                { id: "swift_boots", name: "Swift Boots", slot: "boots", itemType: "boots", weight: 8, minLevel: 7, tags: ["armor", "boots"], archetype: "armor", baseStats: { armor: 16, evasion: 18, movementSpeed: 8 }, implicitModifiers: ["+8% Movement Speed"], requirements: { dexterity: 14 }, allowedAffixGroups: ["armour", "evasion", "energy_shield", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "life", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "stun_threshold", "life_regen"] },
+                { id: "gilded_ring", name: "Gilded Ring", slot: "ring", itemType: "ring", weight: 11, minLevel: 5, tags: ["accessory", "ring"], archetype: "accessory", baseStats: { allAttributes: 8 }, implicitModifiers: ["+8 to all Attributes"], requirements: {}, allowedAffixGroups: ["life", "mana", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "critical_multiplier", "spell_damage", "cast_speed", "life_regen", "mana_regen", "item_rarity"] },
+                { id: "amber_amulet", name: "Amber Amulet", slot: "amulet", itemType: "amulet", weight: 10, minLevel: 5, tags: ["accessory", "amulet"], archetype: "accessory", baseStats: { spellPower: 8 }, implicitModifiers: ["+8% increased Spell Damage"], requirements: {}, allowedAffixGroups: ["life", "mana", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "critical_multiplier", "spell_damage", "cast_speed", "life_regen", "mana_regen", "item_rarity"] },
+                { id: "wax_belt", name: "Wax Belt", slot: "belt", itemType: "belt", weight: 8, minLevel: 12, tags: ["accessory", "belt"], archetype: "accessory", baseStats: { armor: 20, life: 12 }, implicitModifiers: ["+12 to maximum Life"], requirements: {}, allowedAffixGroups: ["life", "mana", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "armour", "stun_threshold", "life_regen", "mana_regen", "item_rarity"] },
+
+                // --- Higher-level weapon tiers (same allowed affix pool per weapon archetype) ---
+                { id: "knights_arming_sword", name: "Knight's Arming Sword", slot: "weapon", itemType: "one-hand sword", weight: 7, minLevel: 35, tags: ["weapon", "melee", "sword"], archetype: "weapon", baseStats: { physicalMin: 28, physicalMax: 42, attackSpeed: 1.5, critChance: 6 }, implicitModifiers: ["+22 Accuracy Rating"], requirements: { strength: 30, dexterity: 15 }, allowedAffixGroups: ["weapon_physical", "attack_speed", "critical_chance", "critical_multiplier", "life", "fire_damage_flat", "fire_damage_percent", "cold_damage_flat", "cold_damage_percent", "lightning_damage_flat", "lightning_damage_percent"] },
+                { id: "ashwrought_greatsword", name: "Ashwrought Greatsword", slot: "weapon", itemType: "two-hand sword", weight: 4, minLevel: 75, tags: ["weapon", "melee", "sword"], archetype: "weapon", baseStats: { physicalMin: 70, physicalMax: 95, attackSpeed: 1.35, critChance: 7.5 }, implicitModifiers: ["+40 Accuracy Rating"], requirements: { strength: 55, dexterity: 25 }, allowedAffixGroups: ["weapon_physical", "attack_speed", "critical_chance", "critical_multiplier", "life", "fire_damage_flat", "fire_damage_percent", "cold_damage_flat", "cold_damage_percent", "lightning_damage_flat", "lightning_damage_percent"] },
+
+                { id: "battle_cleaver", name: "Battle Cleaver", slot: "weapon", itemType: "one-hand axe", weight: 6, minLevel: 40, tags: ["weapon", "melee", "axe"], archetype: "weapon", baseStats: { physicalMin: 34, physicalMax: 50, attackSpeed: 1.15, critChance: 5.5 }, implicitModifiers: ["+16% chance to Bleed on Hit"], requirements: { strength: 38 }, allowedAffixGroups: ["weapon_physical", "attack_speed", "critical_chance", "critical_multiplier", "life", "fire_damage_flat", "fire_damage_percent", "cold_damage_flat", "cold_damage_percent", "lightning_damage_flat", "lightning_damage_percent"] },
+                { id: "reavers_execution_axe", name: "Reaver's Execution Axe", slot: "weapon", itemType: "two-hand axe", weight: 3, minLevel: 78, tags: ["weapon", "melee", "axe"], archetype: "weapon", baseStats: { physicalMin: 85, physicalMax: 115, attackSpeed: 1.05, critChance: 6 }, implicitModifiers: ["+22% chance to Bleed on Hit"], requirements: { strength: 65 }, allowedAffixGroups: ["weapon_physical", "attack_speed", "critical_chance", "critical_multiplier", "life", "fire_damage_flat", "fire_damage_percent", "cold_damage_flat", "cold_damage_percent", "lightning_damage_flat", "lightning_damage_percent"] },
+
+                { id: "longbow_of_the_wilds", name: "Longbow of the Wilds", slot: "weapon", itemType: "bow", weight: 6, minLevel: 38, tags: ["weapon", "ranged", "bow"], archetype: "weapon", baseStats: { physicalMin: 30, physicalMax: 45, attackSpeed: 1.55, critChance: 7.4 }, implicitModifiers: ["+30 Accuracy Rating"], requirements: { dexterity: 42 }, allowedAffixGroups: ["weapon_physical", "attack_speed", "critical_chance", "critical_multiplier", "life", "fire_damage_flat", "fire_damage_percent", "cold_damage_flat", "cold_damage_percent", "lightning_damage_flat", "lightning_damage_percent"] },
+                { id: "stormcallers_warbow", name: "Stormcaller's Warbow", slot: "weapon", itemType: "bow", weight: 3, minLevel: 80, tags: ["weapon", "ranged", "bow"], archetype: "weapon", baseStats: { physicalMin: 78, physicalMax: 102, attackSpeed: 1.6, critChance: 9.6 }, implicitModifiers: ["+48 Accuracy Rating"], requirements: { dexterity: 72 }, allowedAffixGroups: ["weapon_physical", "attack_speed", "critical_chance", "critical_multiplier", "life", "fire_damage_flat", "fire_damage_percent", "cold_damage_flat", "cold_damage_percent", "lightning_damage_flat", "lightning_damage_percent"] },
+
+                { id: "arcane_conduit_wand", name: "Arcane Conduit Wand", slot: "weapon", itemType: "wand", weight: 6, minLevel: 36, tags: ["weapon", "caster", "wand"], archetype: "weapon", baseStats: { physicalMin: 14, physicalMax: 22, attackSpeed: 1.7, critChance: 8.4, spellPower: 34 }, implicitModifiers: ["+22% increased Spell Damage"], requirements: { intelligence: 40 }, allowedAffixGroups: ["weapon_physical", "attack_speed", "critical_chance", "critical_multiplier", "spell_damage", "cast_speed", "mana", "fire_damage_flat", "fire_damage_percent", "cold_damage_flat", "cold_damage_percent", "lightning_damage_flat", "lightning_damage_percent"] },
+                { id: "voidglass_wand", name: "Voidglass Wand", slot: "weapon", itemType: "wand", weight: 3, minLevel: 77, tags: ["weapon", "caster", "wand"], archetype: "weapon", baseStats: { physicalMin: 36, physicalMax: 50, attackSpeed: 1.8, critChance: 10.2, spellPower: 72 }, implicitModifiers: ["+36% increased Spell Damage"], requirements: { intelligence: 70 }, allowedAffixGroups: ["weapon_physical", "attack_speed", "critical_chance", "critical_multiplier", "spell_damage", "cast_speed", "mana", "fire_damage_flat", "fire_damage_percent", "cold_damage_flat", "cold_damage_percent", "lightning_damage_flat", "lightning_damage_percent"] },
+
+                { id: "runed_battlestaff", name: "Runed Battlestaff", slot: "weapon", itemType: "staff", weight: 5, minLevel: 48, tags: ["weapon", "caster", "staff"], archetype: "weapon", baseStats: { physicalMin: 28, physicalMax: 42, attackSpeed: 1.25, critChance: 7.6, spellPower: 46 }, implicitModifiers: ["+20% Chance to Block Spell Damage"], requirements: { intelligence: 52, strength: 28 }, allowedAffixGroups: ["weapon_physical", "attack_speed", "critical_chance", "critical_multiplier", "spell_damage", "cast_speed", "mana", "fire_damage_flat", "fire_damage_percent", "cold_damage_flat", "cold_damage_percent", "lightning_damage_flat", "lightning_damage_percent"] },
+                { id: "worldroot_staff", name: "Worldroot Staff", slot: "weapon", itemType: "staff", weight: 3, minLevel: 85, tags: ["weapon", "caster", "staff"], archetype: "weapon", baseStats: { physicalMin: 62, physicalMax: 88, attackSpeed: 1.3, critChance: 9.2, spellPower: 98 }, implicitModifiers: ["+26% Chance to Block Spell Damage"], requirements: { intelligence: 82, strength: 40 }, allowedAffixGroups: ["weapon_physical", "attack_speed", "critical_chance", "critical_multiplier", "spell_damage", "cast_speed", "mana", "fire_damage_flat", "fire_damage_percent", "cold_damage_flat", "cold_damage_percent", "lightning_damage_flat", "lightning_damage_percent"] },
+
+                // --- Higher-level offhand tiers ---
+                { id: "braced_bulwark", name: "Braced Bulwark", slot: "offhand", itemType: "shield", weight: 6, minLevel: 32, tags: ["shield", "armor", "offhand"], archetype: "offhand", baseStats: { armor: 68, evasion: 22, blockChance: 26 }, implicitModifiers: ["+6% Chance to Block"], requirements: { strength: 34 }, allowedAffixGroups: ["armour", "evasion", "energy_shield", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "life", "mana", "stun_threshold", "life_regen", "mana_regen"] },
+                { id: "aegis_of_the_sentinel", name: "Aegis of the Sentinel", slot: "offhand", itemType: "shield", weight: 3, minLevel: 74, tags: ["shield", "armor", "offhand"], archetype: "offhand", baseStats: { armor: 142, evasion: 38, blockChance: 32 }, implicitModifiers: ["+10% Chance to Block"], requirements: { strength: 62 }, allowedAffixGroups: ["armour", "evasion", "energy_shield", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "life", "mana", "stun_threshold", "life_regen", "mana_regen"] },
+
+                // --- Helm tiers ---
+                { id: "sentrys_helm", name: "Sentry's Helm", slot: "helm", itemType: "helmet", weight: 6, minLevel: 28, tags: ["armor", "helm"], archetype: "armor", baseStats: { armor: 58, evasion: 20 }, implicitModifiers: ["+22 to Accuracy Rating"], requirements: { strength: 26, dexterity: 14 }, allowedAffixGroups: ["armour", "evasion", "energy_shield", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "life", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "stun_threshold", "life_regen"] },
+                { id: "crown_of_ash", name: "Crown of Ash", slot: "helm", itemType: "helmet", weight: 3, minLevel: 72, tags: ["armor", "helm"], archetype: "armor", baseStats: { armor: 118, evasion: 34, energyShield: 40 }, implicitModifiers: ["+40 to Accuracy Rating"], requirements: { strength: 52, intelligence: 30 }, allowedAffixGroups: ["armour", "evasion", "energy_shield", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "life", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "stun_threshold", "life_regen"] },
+
+                // --- Chest tiers (adds a true low-level chest, since Plate Mail starts at 15) ---
+                { id: "padded_vest", name: "Padded Vest", slot: "chest", itemType: "body armour", weight: 10, minLevel: 1, tags: ["armor", "chest"], archetype: "armor", baseStats: { armor: 14, evasion: 10 }, implicitModifiers: ["+4% increased Stun Threshold"], requirements: { strength: 8 }, allowedAffixGroups: ["armour", "evasion", "energy_shield", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "life", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "stun_threshold", "life_regen"] },
+                { id: "reinforced_plate", name: "Reinforced Plate", slot: "chest", itemType: "body armour", weight: 6, minLevel: 45, tags: ["armor", "chest"], archetype: "armor", baseStats: { armor: 156, evasion: 28 }, implicitModifiers: ["+14% increased Stun Threshold"], requirements: { strength: 44 }, allowedAffixGroups: ["armour", "evasion", "energy_shield", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "life", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "stun_threshold", "life_regen"] },
+                { id: "dragonscale_plate", name: "Dragonscale Plate", slot: "chest", itemType: "body armour", weight: 3, minLevel: 80, tags: ["armor", "chest"], archetype: "armor", baseStats: { armor: 260, evasion: 46, energyShield: 60 }, implicitModifiers: ["+22% increased Stun Threshold"], requirements: { strength: 70 }, allowedAffixGroups: ["armour", "evasion", "energy_shield", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "life", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "stun_threshold", "life_regen"] },
+
+                // --- Gloves tiers ---
+                { id: "gauntlets_of_might", name: "Gauntlets of Might", slot: "gloves", itemType: "gloves", weight: 6, minLevel: 38, tags: ["armor", "gloves"], archetype: "armor", baseStats: { armor: 62, evasion: 40 }, implicitModifiers: ["+18 Accuracy Rating"], requirements: { dexterity: 30, strength: 26 }, allowedAffixGroups: ["armour", "evasion", "energy_shield", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "life", "attack_speed", "cast_speed", "life_regen"] },
+                { id: "stormfist_gauntlets", name: "Stormfist Gauntlets", slot: "gloves", itemType: "gloves", weight: 3, minLevel: 76, tags: ["armor", "gloves"], archetype: "armor", baseStats: { armor: 128, evasion: 78 }, implicitModifiers: ["+34 Accuracy Rating"], requirements: { dexterity: 58, strength: 48 }, allowedAffixGroups: ["armour", "evasion", "energy_shield", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "life", "attack_speed", "cast_speed", "life_regen"] },
+
+                // --- Boots tiers ---
+                { id: "trailblazer_boots", name: "Trailblazer Boots", slot: "boots", itemType: "boots", weight: 6, minLevel: 40, tags: ["armor", "boots"], archetype: "armor", baseStats: { armor: 56, evasion: 64, movementSpeed: 15 }, implicitModifiers: ["+15% Movement Speed"], requirements: { dexterity: 36 }, allowedAffixGroups: ["armour", "evasion", "energy_shield", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "life", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "stun_threshold", "life_regen"] },
+                { id: "windwalker_greaves", name: "Windwalker Greaves", slot: "boots", itemType: "boots", weight: 3, minLevel: 78, tags: ["armor", "boots"], archetype: "armor", baseStats: { armor: 112, evasion: 130, movementSpeed: 25 }, implicitModifiers: ["+25% Movement Speed"], requirements: { dexterity: 68 }, allowedAffixGroups: ["armour", "evasion", "energy_shield", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "life", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "stun_threshold", "life_regen"] },
+
+                // --- Ring tiers ---
+                { id: "sapphire_band", name: "Sapphire Band", slot: "ring", itemType: "ring", weight: 7, minLevel: 35, tags: ["accessory", "ring"], archetype: "accessory", baseStats: { allAttributes: 20 }, implicitModifiers: ["+20 to all Attributes"], requirements: {}, allowedAffixGroups: ["life", "mana", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "critical_multiplier", "spell_damage", "cast_speed", "life_regen", "mana_regen", "item_rarity"] },
+                { id: "ring_of_ascendancy", name: "Ring of Ascendancy", slot: "ring", itemType: "ring", weight: 3, minLevel: 82, tags: ["accessory", "ring"], archetype: "accessory", baseStats: { allAttributes: 38 }, implicitModifiers: ["+38 to all Attributes"], requirements: {}, allowedAffixGroups: ["life", "mana", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "critical_multiplier", "spell_damage", "cast_speed", "life_regen", "mana_regen", "item_rarity"] },
+
+                // --- Amulet tiers ---
+                { id: "jade_talisman", name: "Jade Talisman", slot: "amulet", itemType: "amulet", weight: 7, minLevel: 38, tags: ["accessory", "amulet"], archetype: "accessory", baseStats: { spellPower: 26 }, implicitModifiers: ["+18% increased Spell Damage"], requirements: {}, allowedAffixGroups: ["life", "mana", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "critical_multiplier", "spell_damage", "cast_speed", "life_regen", "mana_regen", "item_rarity"] },
+                { id: "amulet_of_the_faithful", name: "Amulet of the Faithful", slot: "amulet", itemType: "amulet", weight: 3, minLevel: 84, tags: ["accessory", "amulet"], archetype: "accessory", baseStats: { spellPower: 54 }, implicitModifiers: ["+30% increased Spell Damage"], requirements: {}, allowedAffixGroups: ["life", "mana", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "critical_multiplier", "spell_damage", "cast_speed", "life_regen", "mana_regen", "item_rarity"] },
+
+                // --- Belt tiers ---
+                { id: "chain_girdle", name: "Chain Girdle", slot: "belt", itemType: "belt", weight: 6, minLevel: 42, tags: ["accessory", "belt"], archetype: "accessory", baseStats: { armor: 48, life: 32 }, implicitModifiers: ["+32 to maximum Life"], requirements: {}, allowedAffixGroups: ["life", "mana", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "armour", "stun_threshold", "life_regen", "mana_regen", "item_rarity"] },
+                { id: "belt_of_the_titan", name: "Belt of the Titan", slot: "belt", itemType: "belt", weight: 3, minLevel: 79, tags: ["accessory", "belt"], archetype: "accessory", baseStats: { armor: 96, life: 68 }, implicitModifiers: ["+68 to maximum Life"], requirements: {}, allowedAffixGroups: ["life", "mana", "resistance_fire", "resistance_cold", "resistance_lightning", "resistance_chaos", "attribute_strength", "attribute_dexterity", "attribute_intelligence", "armour", "stun_threshold", "life_regen", "mana_regen", "item_rarity"] }
+            ];
+
+            // =====================================================================
+            // DATA: Affix library — single source of truth is affixes.json, loaded
+            // at runtime via fetch(). There is no embedded/duplicated copy of this
+            // data inside index.html: edit affixes.json and reload the page.
+            // NOTE: fetch() of a local JSON file is blocked by CORS when the page is
+            // opened directly as a file:// URL. Serve the project folder with any
+            // static file server (e.g. `python -m http.server` or the VS Code
+            // "Live Server" extension) and open it via http://localhost/... instead.
+            // =====================================================================
+            let AFFIX_DEFS = [];
+
+            function normalizeAffixDefs(parsed) {
+                const rawAffixes = Array.isArray(parsed && parsed.affixes) ? parsed.affixes : [];
+                return rawAffixes.map(def => ({
+                    id: def.id,
+                    kind: def.kind,
+                    name: def.name,
+                    group: def.group,
+                    exclusiveGroup: def.exclusiveGroup ? def.exclusiveGroup : def.group,
+                    slots: def.slots ? def.slots : [],
+                    tags: def.tags ? def.tags : [],
+                    statKey: def.statKey,
+                    display: def.display,
+                    tiers: (def.tiers ? def.tiers : []).map(tier => ({
+                        tier: tier.tier,
+                        minLevel: tier.minLevel,
+                        minValue: tier.minValue,
+                        maxValue: tier.maxValue,
+                        weight: tier.weight
+                    })),
+                    render: value => String(def.display).replace("{value}", String(value)),
+                    statMap: value => ({ [def.statKey]: value })
+                }));
+            }
+
+            async function loadAffixLibrary() {
+                const response = await fetch("affixes.json", { cache: "no-store" });
+                if (!response.ok) {
+                    throw new Error(`affixes.json responded with HTTP ${response.status}`);
+                }
+                const parsed = await response.json();
+                AFFIX_DEFS = normalizeAffixDefs(parsed);
+            }
+
+            // =====================================================================
+            // DATA: Unique items (predefined, fixed modifier sets)
+            // =====================================================================
+            const UNIQUE_DEFS = [
+                {
+                    id: "stormlash_cowl",
+                    baseId: "iron_helm",
+                    name: "Stormlash Cowl",
+                    rarity: "unique",
+                    flavor: "Shocks the mind before the body feels pain.",
+                    implicitMods: ["+25 to Lightning Resistance"],
+                    variableMods: [
+                        { text: "+{min}-{max} to maximum Life", min: 45, max: 70 },
+                        { text: "+{min}-{max}% increased Shock Duration", min: 12, max: 24 }
+                    ],
+                    specials: ["Lightning hits against you deal 12% less damage"]
+                },
+                {
+                    id: "voidwalker",
+                    baseId: "swift_boots",
+                    name: "Voidwalker",
+                    rarity: "unique",
+                    flavor: "The path is gone. Only the arrival remains.",
+                    implicitMods: ["Cannot be Slowed below Base Speed"],
+                    variableMods: [
+                        { text: "+{min}-{max} to Movement Speed", min: 18, max: 28 },
+                        { text: "+{min}-{max} to all Elemental Resistances", min: 12, max: 22 }
+                    ],
+                    specials: ["You leave a rift trail that chills nearby enemies"]
+                },
+                {
+                    id: "blood_pact",
+                    baseId: "amber_amulet",
+                    name: "Blood Pact",
+                    rarity: "unique",
+                    flavor: "A promise written in hunger.",
+                    implicitMods: ["Gain 1 Blood Charge on Kill"],
+                    variableMods: [
+                        { text: "+{min}-{max} to maximum Life", min: 80, max: 120 },
+                        { text: "+{min}-{max}% increased Damage while on Low Life", min: 18, max: 35 }
+                    ],
+                    specials: ["Using a flask also grants a ward barrier"]
+                },
+                {
+                    id: "mirrorglass_band",
+                    baseId: "gilded_ring",
+                    name: "Mirrorglass Band",
+                    rarity: "unique",
+                    flavor: "Everything you seek is already looking back.",
+                    implicitMods: ["Cannot be Frozen"],
+                    variableMods: [
+                        { text: "+{min}-{max}% Item Rarity", min: 20, max: 45 },
+                        { text: "+{min}-{max} to all Attributes", min: 10, max: 20 }
+                    ],
+                    specials: ["Drops from mirrored enemies are duplicated at reduced rarity"]
+                }
+            ];
+
+            // =====================================================================
+            // DATA: God items (predefined, top-of-rarity fixed modifier sets)
+            // =====================================================================
+            const GOD_DEFS = [
+                {
+                    id: "crown_of_first_storm",
+                    baseId: "iron_helm",
+                    name: "Crown of the First Storm",
+                    flavor: "The sky remembers its first wound.",
+                    fixedMods: ["Socketed spells gain a lightning echo", "+40 to maximum Life"],
+                    variableMods: [
+                        { text: "+{min}-{max}% to Lightning Damage", min: 35, max: 55 },
+                        { text: "+{min}-{max}% chance to Shock", min: 20, max: 35 }
+                    ],
+                    mechanics: ["Every third spell repeats at 60% power"]
+                },
+                {
+                    id: "atlas_sunderer",
+                    baseId: "plate_mail",
+                    name: "Atlas Sunderer",
+                    flavor: "A fortress carried by a falling star.",
+                    fixedMods: ["Extremely high armor", "Damage taken is partially converted to Ward"],
+                    variableMods: [
+                        { text: "+{min}-{max} to Armor", min: 260, max: 420 },
+                        { text: "+{min}-{max}% to all Resistances", min: 18, max: 30 }
+                    ],
+                    mechanics: ["Nearby enemies are briefly shattered when you block"]
+                },
+                {
+                    id: "oracle_chain",
+                    baseId: "silk_staff",
+                    name: "Oracle Chain",
+                    flavor: "A proof that fate can be indexed.",
+                    fixedMods: ["Granted spells chain one additional time"],
+                    variableMods: [
+                        { text: "+{min}-{max} to Spell Damage", min: 90, max: 140 },
+                        { text: "+{min}-{max}% Cast Speed", min: 18, max: 35 }
+                    ],
+                    mechanics: ["Critical strikes spawn a temporary copy of the last spell"]
+                }
+            ];
+
+            // =====================================================================
+            // DATA: Stackable/currency items
+            // =====================================================================
+            const STACKABLE_ITEMS = {
+                gold_pile: { name: "Gold Pile", category: "currency", valueTier: 1, effect: "Base trade currency used for vendors and low-tier crafting; sells for a modest economy boost.", notes: "Low-tier trading currency" },
+                silver_cache: { name: "Silver Cache", category: "currency", valueTier: 2, effect: "Intermediate crafting currency that improves vendor conversion and mid-tier upgrade options.", notes: "Mid-tier upgrade currency" },
+                boss_cache: { name: "Boss Cache", category: "currency", valueTier: 4, effect: "Boss-tier currency used for endgame crafting, rerolls, and high-value upgrades.", notes: "Endgame crafting currency" },
+                chaos_shard: { name: "Chaos Shard", category: "currency", valueTier: 5, effect: "High-value currency for chaotic rebalancing, rerolls, or speculative crafting paths.", notes: "High-impact reroll currency" },
+                divine_sigil: { name: "Divine Sigil", category: "currency", valueTier: 7, effect: "Rare and powerful sigil used to refine affixes, escalate rarity, and push a build toward peak optimization.", notes: "Rare high-end crafting currency" },
+                wisdom_scroll: { name: "Wisdom Scroll", category: "consumable", valueTier: 1, effect: "Temporary knowledge boost; grants learning or enchanting utility in a more advanced crafting system.", notes: "Utility consumable" },
+                healing_potion: { name: "Healing Potion", category: "potion", valueTier: 1, effect: "Restores a small amount of health and keeps a run moving during combat pressure.", notes: "Combat sustain" },
+                arcane_paradox: { name: "Arcane Paradox", category: "special", valueTier: 9, effect: "A rare special item that explains a deeper or more unstable mechanic; behaves like a progression trophy or rare lab unlock object.", notes: "Special progression token" }
+            };
+
+            // =====================================================================
+            // APPLICATION STATE & DOM REFERENCES
+            // =====================================================================
+            const state = {
+                inventory: [],
+                currentRun: [],
+                history: loadHistory(),
+                selectionId: null,
+                selectedBaseId: BASE_ITEMS[0].id,
+                activeView: "simulator",
+                activeInventoryTab: 0,
+                inventorySort: "recent",
+                pendingBulkRarity: null,
+                pendingBulkTimeout: null,
+                tooltipItem: null,
+                altKeyHeld: false,
+                nextItemId: 0,
+                lastResult: null,
+                lastExport: null,
+                lastSeed: null
+            };
+
+            const el = {
+                viewSwitch: document.getElementById("viewSwitch"),
+                monsterSelect: document.getElementById("monsterSelect"),
+                areaSelect: document.getElementById("areaSelect"),
+                difficultySelect: document.getElementById("difficultySelect"),
+                areaLevelDisplay: document.getElementById("areaLevelDisplay"),
+                quantityRange: document.getElementById("quantityRange"),
+                quantityValue: document.getElementById("quantityValue"),
+                rarityRange: document.getElementById("rarityRange"),
+                rarityValue: document.getElementById("rarityValue"),
+                rollsInput: document.getElementById("rollsInput"),
+                inventoryCapInput: document.getElementById("inventoryCapInput"),
+                simulateButton: document.getElementById("simulateButton"),
+                quickDropButton: document.getElementById("quickDropButton"),
+                clearButton: document.getElementById("clearButton"),
+                exportButton: document.getElementById("exportButton"),
+                rerollSeedButton: document.getElementById("rerollSeedButton"),
+                engineStatus: document.getElementById("engineStatus"),
+                dataLoadError: document.getElementById("dataLoadError"),
+                rarityTable: document.getElementById("rarityTable"),
+                monsterTable: document.getElementById("monsterTable"),
+                debugSnapshot: document.getElementById("debugSnapshot"),
+                metricCards: document.getElementById("metricCards"),
+                lootList: document.getElementById("lootList"),
+                detailPanel: document.getElementById("detailPanel"),
+                statsGrid: document.getElementById("statsGrid"),
+                inventoryToolbar: document.getElementById("inventoryToolbar"),
+                inventoryTabBar: document.getElementById("inventoryTabBar"),
+                inventoryList: document.getElementById("inventoryList"),
+                affixTable: document.getElementById("affixTable"),
+                historyList: document.getElementById("historyList"),
+                itemModelSummary: document.getElementById("itemModelSummary"),
+                affixSummary: document.getElementById("affixSummary"),
+                specialSummary: document.getElementById("specialSummary"),
+                exportPreview: document.getElementById("exportPreview"),
+                inventoryCountPill: document.getElementById("inventoryCountPill"),
+                runSummaryPills: document.getElementById("runSummaryPills"),
+                baseItemCountPill: document.getElementById("baseItemCountPill"),
+                modifierCountPill: document.getElementById("modifierCountPill"),
+                currencyCountPill: document.getElementById("currencyCountPill"),
+                codexAreaTable: document.getElementById("codexAreaTable"),
+                baseItemTable: document.getElementById("baseItemTable"),
+                modifierLibraryTable: document.getElementById("modifierLibraryTable"),
+                currencyLibraryTable: document.getElementById("currencyLibraryTable"),
+                codexDetail: document.getElementById("codexDetail"),
+                itemTooltip: document.getElementById("itemTooltip")
+            };
+
+            function loadHistory() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    const parsed = raw ? JSON.parse(raw) : [];
+                    return Array.isArray(parsed) ? parsed.slice(0, 25) : [];
+                } catch (error) {
+                    return [];
+                }
+            }
+
+            function saveHistory() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.history.slice(0, 25)));
+                } catch (error) {
+                    // Ignore storage failures in file:// or restricted environments.
+                }
+            }
+
+            // =====================================================================
+            // ENGINE: Seeded RNG + weighted-random utilities
+            // =====================================================================
+            function hashSeed(text) {
+                let h = 2166136261 >>> 0;
+                const str = String(text || "seed");
+                for (let i = 0; i < str.length; i++) {
+                    h ^= str.charCodeAt(i);
+                    h = Math.imul(h, 16777619);
+                }
+                return h >>> 0;
+            }
+
+            function createRng(seedText) {
+                let t = hashSeed(seedText);
+                return function rng() {
+                    t += 0x6D2B79F5;
+                    let x = Math.imul(t ^ (t >>> 15), 1 | t);
+                    x ^= x + Math.imul(x ^ (x >>> 7), 61 | x);
+                    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+                };
+            }
+
+            function clamp(value, min, max) {
+                return Math.max(min, Math.min(max, value));
+            }
+
+            function lerp(min, max, t) {
+                return min + (max - min) * t;
+            }
+
+            function round(value, digits = 0) {
+                const factor = Math.pow(10, digits);
+                return Math.round(value * factor) / factor;
+            }
+
+            function formatPercent(value) {
+                return (value >= 0 ? "+" : "") + round(value, 0) + "%";
+            }
+
+            function capitalize(value) {
+                return String(value).replace(/_/g, " ").replace(/\b\w/g, char => char.toUpperCase());
+            }
+
+            function escapeHtml(text) {
+                return String(text)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/\"/g, "&quot;")
+                    .replace(/'/g, "&#39;");
+            }
+
+            function weightedChoice(items, rng) {
+                const total = items.reduce((sum, item) => sum + Math.max(0, item.weight || 0), 0);
+                if (total <= 0) return items[0] || null;
+                let roll = rng() * total;
+                for (const item of items) {
+                    roll -= Math.max(0, item.weight || 0);
+                    if (roll <= 0) return item;
+                }
+                return items[items.length - 1] || null;
+            }
+
+            function weightedKeyChoice(map, rng) {
+                const entries = Object.entries(map).map(([key, weight]) => ({ key, weight }));
+                const picked = weightedChoice(entries, rng);
+                return picked ? picked.key : null;
+            }
+
+            function weightedSum(map) {
+                return Object.values(map).reduce((sum, value) => sum + value, 0);
+            }
+
+            function buildSelectOptions(select, entries) {
+                select.innerHTML = entries.map(entry => `<option value="${escapeHtml(entry.value)}">${escapeHtml(entry.label)}</option>`).join("");
+            }
+
+            function getDefaultKey(map, preferredKey) {
+                if (preferredKey && map[preferredKey]) return preferredKey;
+                return Object.keys(map)[0];
+            }
+
+            function resolveRecord(map, requestedKey, preferredKey) {
+                const resolvedKey = getDefaultKey(map, requestedKey && map[requestedKey] ? requestedKey : preferredKey);
+                return { key: resolvedKey, value: map[resolvedKey] };
+            }
+
+            function formatStatLabel(key) {
+                const labels = {
+                    physicalMin: "Physical Min",
+                    physicalMax: "Physical Max",
+                    attackSpeed: "Attack Speed",
+                    critChance: "Base Crit %",
+                    critChancePercent: "Crit Chance %",
+                    spellPower: "Spell Power",
+                    armor: "Armor",
+                    evasion: "Evasion",
+                    energyShield: "Energy Shield",
+                    blockChance: "Block Chance",
+                    life: "Life",
+                    mana: "Mana",
+                    movementSpeed: "Move Speed",
+                    allAttributes: "All Attributes",
+                    intelligence: "Intelligence",
+                    dexterity: "Dexterity",
+                    strength: "Strength",
+                    physicalPercent: "Physical Damage %",
+                    fireResist: "Fire Resistance",
+                    coldResist: "Cold Resistance",
+                    lightningResist: "Lightning Resistance",
+                    chaosResist: "Chaos Resistance",
+                    attackSpeedPercent: "Attack Speed",
+                    castSpeedPercent: "Cast Speed",
+                    criticalMultiplier: "Critical Strike Multiplier",
+                    stunThreshold: "Stun Threshold",
+                    fireDamageFlat: "Fire Damage",
+                    fireDamagePercent: "Increased Fire Damage",
+                    coldDamageFlat: "Cold Damage",
+                    coldDamagePercent: "Increased Cold Damage",
+                    lightningDamageFlat: "Lightning Damage",
+                    lightningDamagePercent: "Increased Lightning Damage",
+                    lifeRegen: "Life Regeneration",
+                    manaRegen: "Mana Regeneration",
+                    itemRarityPercent: "Rarity of Items Found"
+                };
+                return labels[key] || capitalize(key);
+            }
+
+            function formatStatValue(key, value) {
+                if (["attackSpeed"].includes(key)) return round(value, 2);
+                if ([
+                    "critChance", "blockChance", "movementSpeed", "physicalPercent", "critChancePercent", "spellPower",
+                    "fireResist", "coldResist", "lightningResist", "chaosResist",
+                    "attackSpeedPercent", "castSpeedPercent", "criticalMultiplier", "stunThreshold",
+                    "fireDamagePercent", "coldDamagePercent", "lightningDamagePercent", "itemRarityPercent"
+                ].includes(key)) return `${round(value, 1)}%`;
+                if (["lifeRegen", "manaRegen"].includes(key)) return `${round(value, 1)}/s`;
+                return round(value, 0);
+            }
+
+            function renderTagChips(tags) {
+                if (!tags || !tags.length) return `<span class="tiny">None</span>`;
+                return `<div class="tag-row">${tags.map(tag => `<span class="tag-chip">${escapeHtml(tag)}</span>`).join("")}</div>`;
+            }
+
+            function cloneStats(stats) {
+                return Object.entries(stats || {}).reduce((acc, [key, value]) => {
+                    acc[key] = value;
+                    return acc;
+                }, {});
+            }
+
+            function mergeStats(target, source) {
+                for (const [key, value] of Object.entries(source || {})) {
+                    target[key] = (target[key] || 0) + value;
+                }
+                return target;
+            }
+
+            function buildRequirementsText(requirements) {
+                const entries = Object.entries(requirements || {}).filter(([, value]) => value > 0);
+                return entries.length ? entries.map(([key, value]) => `${capitalize(key)} ${value}`).join(", ") : "None";
+            }
+
+            function getMonsterProfile(monsterId, areaId, difficultyId) {
+                const safeMonsters = CONFIG.monsters || {};
+                const safeAreas = CONFIG.areas || {};
+                const safeDifficulties = CONFIG.difficulties || {};
+                const resolvedMonster = resolveRecord(safeMonsters, monsterId, "forest_beast");
+                const resolvedArea = resolveRecord(safeAreas, areaId, "verdant_fields");
+                const resolvedDifficulty = resolveRecord(safeDifficulties, difficultyId, "normal");
+                const monster = resolvedMonster.value || {};
+                const area = resolvedArea.value || {};
+                const difficulty = resolvedDifficulty.value || {};
+                const categoryWeights = { ...CONFIG.categoryWeights };
+                if (monster?.categoryWeights) {
+                    for (const key of CATEGORY_ORDER) {
+                        categoryWeights[key] = Number(monster.categoryWeights[key] || categoryWeights[key] || 0);
+                    }
+                }
+                if (area?.categoryBias) {
+                    for (const [key, value] of Object.entries(area.categoryBias)) {
+                        categoryWeights[key] = (categoryWeights[key] || 0) + Number(value || 0);
+                    }
+                }
+                const quantityBonus = Number(monster?.quantityBonus || 0) + Number(area?.quantityBonus || 0) + Number(difficulty?.quantityBonus || 0);
+                const rarityBonus = Number(monster?.rarityBonus || 0) + Number(area?.rarityBonus || 0) + Number(difficulty?.rarityBonus || 0);
+                const areaLevel = Number(area?.level || 1);
+                const overrideMonsterLevel = Number.isFinite(Number(monster?.level)) && Number(monster.level) > 0 ? Number(monster.level) : null;
+                const monsterLevel = overrideMonsterLevel && overrideMonsterLevel !== areaLevel ? overrideMonsterLevel : areaLevel;
+                return {
+                    monsterId: resolvedMonster.key,
+                    areaId: resolvedArea.key,
+                    difficultyId: resolvedDifficulty.key,
+                    monster,
+                    area,
+                    difficulty,
+                    categoryWeights,
+                    quantityBonus,
+                    rarityBonus,
+                    monsterLevel,
+                    areaLevel
+                };
+            }
+
+            function normalizeContext(rawContext) {
+                const source = rawContext || {};
+                const profile = getMonsterProfile(source.monsterId, source.areaId, source.difficultyId);
+                const providedMonsterLevel = Number.isFinite(Number(source.monsterLevel)) ? Number(source.monsterLevel) : null;
+                const resolvedAreaLevel = Number.isFinite(Number(source.areaLevel)) ? Number(source.areaLevel) : profile.areaLevel;
+                const itemLevel = Number.isFinite(Number(source.itemLevel)) ? Number(source.itemLevel) : resolvedAreaLevel;
+                return {
+                    ...source,
+                    monsterId: profile.monsterId,
+                    areaId: profile.areaId,
+                    difficultyId: profile.difficultyId,
+                    monsterLevel: clamp(providedMonsterLevel ?? profile.monsterLevel ?? resolvedAreaLevel, 1, 100),
+                    areaLevel: clamp(resolvedAreaLevel, 1, 100),
+                    itemLevel: clamp(itemLevel, 1, 100),
+                    quantityMultiplier: clamp(Number(source.quantityMultiplier || 0), 0, 4),
+                    rarityMultiplier: clamp(Number(source.rarityMultiplier || 0), 0, 4),
+                    profile
+                };
+            }
+
+            function scaleRarityWeights(baseWeights, rarityMultiplier) {
+                const boost = Math.max(0, rarityMultiplier - 1);
+                return {
+                    normal: baseWeights.normal * Math.max(0.28, 1 - boost * 0.55),
+                    magic: baseWeights.magic * (1 + boost * 0.35),
+                    rare: baseWeights.rare * (1 + boost * 0.82),
+                    unique: baseWeights.unique * (1 + boost * 1.25),
+                    god: baseWeights.god * (1 + boost * 1.85)
+                };
+            }
+
+            function makeRarityTable(rarityMultiplier) {
+                const weights = scaleRarityWeights(CONFIG.rarityWeights, rarityMultiplier);
+                const rows = RARITY_ORDER.map(rarity => {
+                    const raw = weights[rarity];
+                    return { rarity, weight: raw, chance: raw / weightedSum(weights) };
+                });
+                el.rarityTable.innerHTML = `
+                    <tr><th>Rarity</th><th>Weight</th><th>Chance</th></tr>
+                    ${rows.map(row => `<tr><td class="rarity-${row.rarity}">${capitalize(row.rarity)}</td><td>${round(row.weight, 1)}</td><td>${formatPercent(row.chance * 100)}</td></tr>`).join("")}
+                `;
+            }
+
+            function makeMonsterTable(profile) {
+                const rows = CATEGORY_ORDER.map(category => ({
+                    category,
+                    weight: profile.categoryWeights[category] || 0
+                }));
+                el.monsterTable.innerHTML = `
+                    <tr><th>Category</th><th>Weight</th></tr>
+                    ${rows.map(row => `<tr><td>${capitalize(row.category)}</td><td>${round(row.weight, 1)}</td></tr>`).join("")}
+                `;
+            }
+
+            function rollFractionalCount(value, rng) {
+                const guaranteed = Math.floor(value);
+                const remainder = value - guaranteed;
+                return guaranteed + (rng() < remainder ? 1 : 0);
+            }
+
+            function chooseBaseItem(slot, itemLevel, rng) {
+                const candidates = BASE_ITEMS.filter(item => item.minLevel <= itemLevel && (slot ? item.slot === slot : true));
+                const pool = candidates.length ? candidates : BASE_ITEMS.filter(item => item.minLevel <= itemLevel) || BASE_ITEMS;
+                return weightedChoice(pool.map(item => ({ ...item, weight: item.weight })), rng) || pool[0];
+            }
+
+            function rarityFromWeights(weights, rng) {
+                return weightedKeyChoice(weights, rng) || "normal";
+            }
+
+            function selectEligibleAffixes(kind, baseItem, itemLevel, usedIds, usedExclusiveGroups, rng) {
+                const candidates = AFFIX_DEFS.filter(def => {
+                    const supportedSlot = def.slots.includes(baseItem.slot);
+                    const allowedGroup = !def.group || (baseItem.allowedAffixGroups || []).includes(def.group);
+                    const unusedId = !usedIds.has(def.id);
+                    const unusedExclusiveGroup = !def.exclusiveGroup || !usedExclusiveGroups.has(def.exclusiveGroup);
+                    const hasRequiredTags = !def.requiresTags || def.requiresTags.every(tag => baseItem.tags.includes(tag));
+                    const hasForbiddenTags = def.forbiddenTags && def.forbiddenTags.some(tag => baseItem.tags.includes(tag));
+                    return def.kind === kind && supportedSlot && allowedGroup && unusedId && unusedExclusiveGroup && hasRequiredTags && !hasForbiddenTags;
+                });
+                const eligible = candidates.filter(def => def.tiers.some(tier => tier.minLevel <= itemLevel));
+                if (!eligible.length) return null;
+                const chosen = weightedChoice(eligible.map(def => ({ ...def, weight: def.tiers.reduce((sum, tier) => tier.minLevel <= itemLevel ? sum + tier.weight : sum, 0) })), rng);
+                return chosen || null;
+            }
+
+            function pickAffixTier(def, itemLevel, rng) {
+                const tiers = def.tiers.filter(tier => tier.minLevel <= itemLevel).sort((a, b) => a.tier - b.tier);
+                if (!tiers.length) return null;
+                const tier = weightedChoice(tiers.map(entry => ({ ...entry, weight: entry.weight })), rng);
+                if (!tier) return null;
+                const value = Math.round(lerp(tier.minValue, tier.maxValue, rng()));
+                return { tier, value };
+            }
+
+            function buildAffixes(baseItem, itemLevel, rarity, rng) {
+                const config = CONFIG.rarityLimits[rarity];
+                if (!config) return { prefixes: [], suffixes: [] };
+
+                const prefixes = [];
+                const suffixes = [];
+                const used = new Set();
+                const usedExclusiveGroups = new Set();
+
+                function rollAffix(kind, list) {
+                    const def = selectEligibleAffixes(kind, baseItem, itemLevel, used, usedExclusiveGroups, rng);
+                    if (!def) return false;
+                    const roll = pickAffixTier(def, itemLevel, rng);
+                    if (!roll) return false;
+                    used.add(def.id);
+                    if (def.exclusiveGroup) usedExclusiveGroups.add(def.exclusiveGroup);
+                    list.push({
+                        id: def.id,
+                        kind: def.kind,
+                        name: def.name,
+                        group: def.group || null,
+                        exclusiveGroup: def.exclusiveGroup || null,
+                        tags: def.tags || [],
+                        text: def.render(roll.value),
+                        display: def.display,
+                        tier: roll.tier.tier,
+                        tierMinValue: roll.tier.minValue,
+                        tierMaxValue: roll.tier.maxValue,
+                        value: roll.value,
+                        statDelta: def.statMap ? def.statMap(roll.value) : {}
+                    });
+                    return true;
+                }
+
+                for (let index = 0; index < config.prefixes; index++) {
+                    const forced = prefixes.length < (config.minPrefixes || 0);
+                    if (!forced && rng() > (config.prefixChance[index] ?? 0)) continue;
+                    rollAffix("prefix", prefixes);
+                }
+
+                for (let index = 0; index < config.suffixes; index++) {
+                    const forced = suffixes.length < (config.minSuffixes || 0);
+                    if (!forced && rng() > (config.suffixChance[index] ?? 0)) continue;
+                    rollAffix("suffix", suffixes);
+                }
+
+                // Guarantee a minimum total affix count (e.g. Rare items must always roll at
+                // least 1 prefix + 1 suffix + 1 more, never end up looking like a Magic item).
+                const minTotal = config.minTotal || 0;
+                while (prefixes.length + suffixes.length < minTotal) {
+                    const canAddPrefix = prefixes.length < config.prefixes;
+                    const canAddSuffix = suffixes.length < config.suffixes;
+                    if (!canAddPrefix && !canAddSuffix) break;
+                    const tryPrefixFirst = canAddPrefix && (!canAddSuffix || prefixes.length <= suffixes.length);
+                    const firstKind = tryPrefixFirst ? "prefix" : "suffix";
+                    const firstList = tryPrefixFirst ? prefixes : suffixes;
+                    if (rollAffix(firstKind, firstList)) continue;
+                    // No eligible affix left of the preferred kind — try the other kind once
+                    // before giving up, to avoid looping forever on an exhausted pool.
+                    const secondKind = tryPrefixFirst ? "suffix" : "prefix";
+                    const secondList = tryPrefixFirst ? suffixes : prefixes;
+                    const secondAllowed = tryPrefixFirst ? canAddSuffix : canAddPrefix;
+                    if (!secondAllowed || !rollAffix(secondKind, secondList)) break;
+                }
+
+                return { prefixes, suffixes };
+            }
+
+            function rollSpecialDefinition(rarity, rng) {
+                const pool = rarity === "god" ? GOD_DEFS : UNIQUE_DEFS;
+                return pool.length ? weightedChoice(pool.map(def => ({ ...def, weight: 1 })), rng) : null;
+            }
+
+            function rollVariableText(template, min, max, rng) {
+                const value = Math.round(lerp(min, max, rng()));
+                return template.replace("{min}-{max}", String(value));
+            }
+
+            function generateEquipment(context, rng) {
+                const baseItem = chooseBaseItem(null, context.itemLevel, rng);
+                const rarityWeights = scaleRarityWeights(CONFIG.rarityWeights, context.effectiveRarityMultiplier);
+                const rarity = rarityFromWeights(rarityWeights, rng);
+                const uniqueBiasAllowed = rarity === "unique" || rarity === "god";
+
+                if (uniqueBiasAllowed) {
+                    const special = rollSpecialDefinition(rarity, rng);
+                    if (special) {
+                        const specialBase = BASE_ITEMS.find(item => item.id === special.baseId) || baseItem;
+                        const modTexts = [
+                            ...(special.fixedMods || []),
+                            ...(special.variableMods || []).map(mod => rollVariableText(mod.text, mod.min, mod.max, rng))
+                        ];
+                        const specialText = rarity === "god" ? special.mechanics || [] : special.specials || [];
+                        return buildItem({
+                            category: "equipment",
+                            rarity,
+                            baseItem: specialBase,
+                            name: special.name,
+                            flavor: special.flavor,
+                            special: specialText,
+                            implicitMods: special.implicitMods || [],
+                            explicitMods: modTexts,
+                            tags: [...(specialBase.tags || []), rarity],
+                            itemLevel: context.itemLevel,
+                            source: context,
+                            scoreBias: rarity === "god" ? 280 : 120
+                        });
+                    }
+                }
+
+                const affixes = rarity === "normal" ? { prefixes: [], suffixes: [] } : buildAffixes(baseItem, context.itemLevel, rarity, rng);
+                return buildItem({
+                    category: "equipment",
+                    rarity,
+                    baseItem,
+                    itemLevel: context.itemLevel,
+                    source: context,
+                    prefixes: affixes.prefixes,
+                    suffixes: affixes.suffixes,
+                    scoreBias: rarity === "rare" ? 70 : rarity === "magic" ? 28 : 0
+                });
+            }
+
+            function generateStackable(category, rng, context, profile) {
+                const table = Object.entries(STACKABLE_ITEMS).filter(([, data]) => data.category === category);
+                const selected = weightedChoice(table.map(([id, data]) => ({ id, data, weight: data.valueTier })), rng);
+                if (!selected) return null;
+                const itemLevelBoost = Math.max(1, Math.floor(context.itemLevel / 20));
+                const count = selected.data.valueTier * itemLevelBoost + 1 + Math.floor(rng() * (2 + context.effectiveQuantityMultiplier * 2));
+                return buildItem({
+                    category,
+                    rarity: "normal",
+                    itemLevel: context.itemLevel,
+                    stackCount: count,
+                    name: selected.data.name,
+                    source: context,
+                    scoreBias: selected.data.valueTier * 3 + profile.rarityBonus * 10,
+                    stackId: selected.id
+                });
+            }
+
+            function generateMiscellaneous(rng, context) {
+                const options = [
+                    { id: "journal_page", name: "Journal Page", rarity: "normal", scoreBias: 2 },
+                    { id: "engraved_coin", name: "Engraved Coin", rarity: "normal", scoreBias: 4 },
+                    { id: "ancient_key", name: "Ancient Key", rarity: "normal", scoreBias: 8 }
+                ];
+                const selected = weightedChoice(options.map(entry => ({ ...entry, weight: entry.scoreBias })), rng);
+                return buildItem({
+                    category: "miscellaneous",
+                    rarity: "normal",
+                    name: selected.name,
+                    stackId: selected.id,
+                    stackCount: 1 + Math.floor(rng() * 3),
+                    itemLevel: context.itemLevel,
+                    source: context,
+                    scoreBias: selected.scoreBias
+                });
+            }
+
+            function generateSpecial(rng, context) {
+                const selected = weightedChoice([
+                    { name: "Arcane Paradox", id: "arcane_paradox", weight: 4 },
+                    { name: "Mnemonic Shard", id: "mnemonic_shard", weight: 2 },
+                    { name: "Sundered Sigil", id: "sundered_sigil", weight: 1 }
+                ], rng);
+                return buildItem({
+                    category: "special",
+                    rarity: "unique",
+                    name: selected.name,
+                    special: ["Special drop condition satisfied"],
+                    stackId: selected.id,
+                    stackCount: 1,
+                    itemLevel: context.itemLevel,
+                    source: context,
+                    scoreBias: 140
+                });
+            }
+
+            function buildItem(payload) {
+                state.nextItemId += 1;
+                const id = `item-${state.nextItemId}`;
+                const baseName = payload.baseItem ? payload.baseItem.name : payload.name;
+                const rarity = payload.rarity || "normal";
+                const prefixes = payload.prefixes || [];
+                const suffixes = payload.suffixes || [];
+                const explicitMods = payload.explicitMods || [];
+                const baseTags = payload.baseItem?.tags || [];
+                const affixTags = [...prefixes, ...suffixes].flatMap(mod => mod.tags || []);
+                const item = {
+                    instanceId: id,
+                    id,
+                    category: payload.category,
+                    rarity,
+                    name: payload.name || baseName,
+                    baseName,
+                    baseId: payload.baseItem ? payload.baseItem.id : null,
+                    slot: payload.baseItem ? payload.baseItem.slot : null,
+                    baseLevel: payload.baseItem ? payload.baseItem.minLevel : payload.itemLevel || 1,
+                    itemType: payload.baseItem ? payload.baseItem.itemType : payload.category,
+                    itemLevel: payload.itemLevel || 1,
+                    stackId: payload.stackId || null,
+                    stackCount: payload.stackCount || 1,
+                    prefixes,
+                    suffixes,
+                    explicitMods,
+                    implicitMods: payload.implicitMods || [],
+                    special: payload.special || [],
+                    flavor: payload.flavor || "",
+                    tags: Array.from(new Set([...(payload.tags || []), ...baseTags, ...affixTags, rarity])),
+                    baseStats: cloneStats(payload.baseItem?.baseStats || {}),
+                    requirements: { ...(payload.baseItem?.requirements || {}) },
+                    allowedAffixGroups: [...(payload.baseItem?.allowedAffixGroups || [])],
+                    source: payload.source || null,
+                    score: 0,
+                    scoreBias: payload.scoreBias || 0,
+                    metadata: {
+                        generatedAt: new Date().toISOString(),
+                        archetype: payload.baseItem?.archetype || null
+                    },
+                    timestamp: Date.now()
+                };
+                item.score = scoreItem(item);
+                if (payload.category === "equipment" && !payload.name) {
+                    // Deliberately keep the base item's plain name for Magic/Rare gear
+                    // instead of concatenating every rolled affix name into the title
+                    // (that produced unreadably long names). Rarity is already conveyed
+                    // by color, the rarity pill, and the subtitle/tooltip breakdown.
+                    item.name = payload.baseItem ? payload.baseItem.name : item.name;
+                }
+                return item;
+            }
+
+            function computeEquipmentStats(item) {
+                const totalStats = cloneStats(item.baseStats || {});
+                for (const mod of [...(item.prefixes || []), ...(item.suffixes || [])]) {
+                    mergeStats(totalStats, mod.statDelta || {});
+                }
+                return totalStats;
+            }
+
+            function renderStatRows(stats) {
+                const entries = Object.entries(stats || {}).filter(([, value]) => value !== 0 && value !== null && value !== undefined);
+                if (!entries.length) {
+                    return `<tr><td colspan="2" class="tiny">No stat block.</td></tr>`;
+                }
+                return entries.map(([key, value]) => `<tr><th>${escapeHtml(formatStatLabel(key))}</th><td>${escapeHtml(String(formatStatValue(key, value)))}</td></tr>`).join("");
+            }
+
+            function scoreItem(item) {
+                const rarityScore = { normal: 0, magic: 20, rare: 60, unique: 140, god: 240 }[item.rarity] || 0;
+                const prefixScore = (item.prefixes || []).reduce((sum, mod) => sum + mod.value, 0);
+                const suffixScore = (item.suffixes || []).reduce((sum, mod) => sum + mod.value, 0);
+                const explicitScore = (item.explicitMods || []).reduce((sum, text) => sum + text.length * 0.7, 0);
+                const stackScore = item.stackCount || 1;
+                return round(rarityScore + prefixScore * 1.2 + suffixScore * 1.1 + explicitScore + stackScore + (item.scoreBias || 0), 2);
+            }
+
+            function createLootItemForCategory(category, context, profile, rng) {
+                if (category === "equipment") return generateEquipment(context, rng);
+                if (category === "currency") return generateStackable("currency", rng, context, profile);
+                if (category === "potion") return buildItem({
+                    category: "potion",
+                    rarity: "normal",
+                    name: "Healing Potion",
+                    stackId: "healing_potion",
+                    stackCount: 1 + Math.floor(rng() * 3),
+                    itemLevel: context.itemLevel,
+                    source: context,
+                    scoreBias: 8
+                });
+                if (category === "consumable") return buildItem({
+                    category: "consumable",
+                    rarity: "normal",
+                    name: "Wisdom Scroll",
+                    stackId: "wisdom_scroll",
+                    stackCount: 1 + Math.floor(rng() * 2),
+                    itemLevel: context.itemLevel,
+                    source: context,
+                    scoreBias: 5
+                });
+                if (category === "miscellaneous") return generateMiscellaneous(rng, context);
+                if (category === "special") return generateSpecial(rng, context);
+                return null;
+            }
+
+            function generateGuaranteedDrops(profile, context, rng) {
+                const guaranteed = [];
+                const scaleFactor = clamp(0.75 + context.quantityMultiplier * 0.22 + profile.quantityBonus * 0.18, 0.25, 1.45);
+
+                for (const entry of profile.monster.guaranteed || []) {
+                    const dropChance = clamp(Number(entry.chance ?? 1), 0, 1);
+                    if (rng() > dropChance) continue;
+                    const rawCount = lerp(entry.min, entry.max, rng()) * scaleFactor;
+                    const count = Math.max(0, Math.floor(rawCount));
+                    const bonusRoll = rng() < (rawCount - count) ? 1 : 0;
+                    const totalCount = count + bonusRoll;
+                    for (let index = 0; index < totalCount; index++) {
+                        const category = entry.category === "equipment" ? "equipment" : entry.category;
+                        let item = null;
+                        if (entry.itemId && STACKABLE_ITEMS[entry.itemId]) {
+                            const def = STACKABLE_ITEMS[entry.itemId];
+                            item = buildItem({
+                                category: def.category,
+                                rarity: "normal",
+                                name: def.name,
+                                itemLevel: context.itemLevel,
+                                source: context,
+                                stackId: entry.itemId,
+                                stackCount: Math.max(1, Math.floor(lerp(entry.min, entry.max, rng()))),
+                                scoreBias: def.valueTier * 3,
+                                explicitMods: def.effect ? [def.effect] : []
+                            });
+                        } else if (entry.itemId === "forced_equipment" || category === "equipment") {
+                            item = createLootItemForCategory("equipment", context, profile, rng);
+                        } else {
+                            item = createLootItemForCategory(category, context, profile, rng);
+                        }
+                        if (item) guaranteed.push(item);
+                    }
+                }
+                return guaranteed;
+            }
+
+            function generateRun(rawContext) {
+                const safeSeed = rawContext && rawContext.seed && String(rawContext.seed).trim()
+                    ? String(rawContext.seed)
+                    : `run-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+                const context = normalizeContext({ ...rawContext, seed: safeSeed });
+                const rng = createRng(context.seed);
+                const profile = context.profile;
+                const effectiveQuantity = clamp(1 + context.quantityMultiplier + profile.quantityBonus, 0.2, 4);
+                const effectiveRarity = clamp(1 + context.rarityMultiplier + profile.rarityBonus, 0.2, 3.5);
+                const baseRollWeight = CONFIG.baseLootRolls * (0.28 + profile.monster.baseRolls / 7.2);
+                const expectedRolls = baseRollWeight * (0.45 + context.quantityMultiplier * 0.9 + profile.quantityBonus * 0.6);
+                let rollCount = Math.floor(expectedRolls);
+                if (rng() < (expectedRolls - rollCount)) rollCount += 1;
+                const bonusChance = clamp(0.08 + context.quantityMultiplier * 0.18 + profile.monster.baseRolls / 40, 0, 0.65);
+                if (rng() < bonusChance) rollCount += 1;
+                rollCount = Math.max(0, Math.min(18, rollCount));
+                const runs = [];
+                const itemContext = {
+                    ...context,
+                    effectiveQuantityMultiplier: effectiveQuantity,
+                    effectiveRarityMultiplier: effectiveRarity,
+                    profile
+                };
+
+                for (let index = 0; index < rollCount; index++) {
+                    const category = weightedKeyChoice(profile.categoryWeights, rng);
+                    const item = createLootItemForCategory(category, itemContext, profile, rng);
+                    if (item) runs.push(item);
+                }
+
+                const guaranteed = generateGuaranteedDrops(profile, itemContext, rng);
+                const allItems = guaranteed.concat(runs);
+                const normalized = allItems.filter(Boolean).slice(0, context.inventoryCap);
+                return {
+                    items: normalized,
+                    profile,
+                    rollCount,
+                    guaranteedCount: guaranteed.length,
+                    quantityMultiplier: effectiveQuantity,
+                    rarityMultiplier: effectiveRarity
+                };
+            }
+
+            function summariseRun(result) {
+                const countsByCategory = CATEGORY_ORDER.reduce((acc, category) => {
+                    acc[category] = result.items.filter(item => item.category === category).length;
+                    return acc;
+                }, {});
+                const countsByRarity = RARITY_ORDER.reduce((acc, rarity) => {
+                    acc[rarity] = result.items.filter(item => item.rarity === rarity).length;
+                    return acc;
+                }, {});
+                const totalScore = result.items.reduce((sum, item) => sum + item.score, 0);
+                const bestItem = result.items.slice().sort((a, b) => b.score - a.score)[0] || null;
+                return {
+                    total: result.items.length,
+                    countsByCategory,
+                    countsByRarity,
+                    totalScore,
+                    bestItem,
+                    averageScore: result.items.length ? totalScore / result.items.length : 0
+                };
+            }
+
+            function mergeInventory(items) {
+                state.inventory = state.inventory.concat(items);
+                const cap = clamp(Number(el.inventoryCapInput.value || MAX_INVENTORY_SLOTS), 60, MAX_INVENTORY_SLOTS);
+                if (state.inventory.length > cap) {
+                    state.inventory = state.inventory.slice(state.inventory.length - cap);
+                }
+            }
+
+            function formatItemTitle(item) {
+                // Item names never include rolled affix names (Unique/God items keep their
+                // predefined fantasy name; Normal/Magic/Rare equipment shows the plain base
+                // item name). Rarity is conveyed separately via color/pill/tooltip sections.
+                return item.name || item.baseName || capitalize(item.category);
+            }
+
+            function formatModSummary(item) {
+                if (item.category === "currency") {
+                    const def = STACKABLE_ITEMS[item.stackId] || STACKABLE_ITEMS[item.id] || null;
+                    return def && def.effect ? def.effect : "Trade coin used for economy and crafting progression.";
+                }
+                if (item.category === "equipment") {
+                    const explicit = [...(item.prefixes || []), ...(item.suffixes || [])];
+                    if (!explicit.length) return "No explicit modifiers on this item.";
+                    return explicit.slice(0, 3).map(mod => mod.name).join(" • ");
+                }
+                if (item.special && item.special.length) return item.special[0];
+                if (item.stackCount > 1) return `${item.stackCount}x stack`;
+                return item.flavor || "No special notes";
+            }
+
+            function getAffixRangeSuffix(mod) {
+                if (!mod || mod.tierMinValue === undefined || mod.tierMaxValue === undefined) return null;
+                if (mod.tierMinValue === mod.tierMaxValue) return null;
+                return `${mod.tierMinValue}-${mod.tierMaxValue}`;
+            }
+
+            function getItemModifierEntries(item) {
+                const entries = [];
+                for (const mod of item.implicitMods || []) entries.push({ label: "Implicit", text: mod, tier: null, group: null, tags: [], rangeSuffix: null });
+                for (const mod of item.prefixes || []) entries.push({ label: "Prefix", text: mod.text, name: mod.name, tier: mod.tier || null, group: mod.group || null, tags: mod.tags || [], rangeSuffix: getAffixRangeSuffix(mod) });
+                for (const mod of item.suffixes || []) entries.push({ label: "Suffix", text: mod.text, name: mod.name, tier: mod.tier || null, group: mod.group || null, tags: mod.tags || [], rangeSuffix: getAffixRangeSuffix(mod) });
+                for (const mod of item.explicitMods || []) entries.push({ label: "Explicit", text: mod, tier: null, group: null, tags: [], rangeSuffix: null });
+                for (const mod of item.special || []) entries.push({ label: item.rarity === "god" ? "God Mechanic" : "Special", text: mod, tier: null, group: null, tags: [], rangeSuffix: null });
+                if (item.category === "currency") {
+                    const def = STACKABLE_ITEMS[item.stackId] || STACKABLE_ITEMS[item.id] || null;
+                    if (def?.effect) entries.push({ label: "Currency Effect", text: def.effect, tier: def.valueTier || null, group: null, tags: [], rangeSuffix: null });
+                }
+                return entries;
+            }
+
+            function formatBaseStatLines(item) {
+                if (item.category !== "equipment") return [];
+                const stats = item.baseStats || {};
+                const lines = [];
+                if (stats.physicalMin !== undefined || stats.physicalMax !== undefined) {
+                    const min = round(stats.physicalMin || 0, 0);
+                    const max = round(stats.physicalMax || 0, 0);
+                    lines.push(`Physical Damage: ${min}-${max}`);
+                }
+                for (const [key, value] of Object.entries(stats)) {
+                    if (key === "physicalMin" || key === "physicalMax") continue;
+                    if (value === 0 || value === null || value === undefined) continue;
+                    lines.push(`${formatStatLabel(key)}: ${formatStatValue(key, value)}`);
+                }
+                return lines;
+            }
+
+            function renderBaseStatsSection(item) {
+                const lines = formatBaseStatLines(item);
+                if (!lines.length) return null;
+                return `<div class="poe-mod-section">${lines.map(line => `<div class="poe-mod-line poe-base-stat">${escapeHtml(line)}</div>`).join("")}</div>`;
+            }
+
+            function renderRequirementsSection(item) {
+                if (item.category !== "equipment") return null;
+                const text = buildRequirementsText(item.requirements);
+                if (!text || text === "None") return null;
+                return `<div class="poe-mod-section"><div class="poe-mod-line poe-requirements">Requires ${escapeHtml(text)}</div></div>`;
+            }
+
+            function renderModifierEntries(item) {
+                const entries = getItemModifierEntries(item);
+                if (!entries.length) {
+                    return `<div class="mod-inline"><div class="mod-line"><span class="tiny">No explicit modifiers.</span></div></div>`;
+                }
+
+                return `
+                    <div class="mod-inline">
+                        ${entries.slice(0, 4).map(entry => `
+                            <div class="mod-line">
+                                <span class="mod-role">${escapeHtml(entry.label)}</span>
+                                <span>${escapeHtml(entry.text)}</span>
+                                ${entry.tier ? `<span class="mod-tier">T${escapeHtml(String(entry.tier))}</span>` : ``}
+                            </div>
+                        `).join("")}
+                    </div>
+                `;
+            }
+
+            function renderTooltipMod(entry, showRange) {
+                const roleAbbrev = entry.label === "Prefix" ? "P" : entry.label === "Suffix" ? "S" : null;
+                const rangePart = showRange && entry.rangeSuffix ? ` <span class="poe-mod-range">(${escapeHtml(entry.rangeSuffix)})</span>` : "";
+                const tags = [];
+                if (roleAbbrev) tags.push(`<span class="poe-mod-role" title="${escapeHtml(entry.label)}">${roleAbbrev}</span>`);
+                if (entry.tier) tags.push(`<span class="poe-mod-tier">T${escapeHtml(String(entry.tier))}</span>`);
+                return `
+                    <div class="poe-mod-line">
+                        <span>${escapeHtml(entry.text)}${rangePart}</span>
+                        ${tags.join("")}
+                    </div>
+                `;
+            }
+
+            function buildItemTooltipHtml(item) {
+                const modifiers = getItemModifierEntries(item);
+                const implicitEntries = modifiers.filter(entry => entry.label === "Implicit");
+                const explicitEntries = modifiers.filter(entry => entry.label === "Prefix" || entry.label === "Suffix");
+                const otherEntries = modifiers.filter(entry => !["Implicit", "Prefix", "Suffix"].includes(entry.label));
+                const title = escapeHtml(formatItemTitle(item));
+                const subtitleParts = [
+                    item.category === "equipment" && item.baseName && item.baseName !== formatItemTitle(item) ? item.baseName : null,
+                    item.category === "equipment" ? capitalize(item.itemType || item.slot || "") : capitalize(item.category),
+                    `Item Level ${item.itemLevel}`
+                ].filter(Boolean);
+                const showRange = Boolean(state.altKeyHeld);
+
+                // Section order deliberately mirrors Path of Exile's item tooltip layout:
+                // name/base type -> base stat block (physical damage, attack speed, armour, ...)
+                // -> attribute requirements -> implicit modifiers -> explicit prefixes/suffixes.
+                const sections = [];
+                const baseStatsSection = renderBaseStatsSection(item);
+                if (baseStatsSection) sections.push(baseStatsSection);
+                const requirementsSection = renderRequirementsSection(item);
+                if (requirementsSection) sections.push(requirementsSection);
+                if (implicitEntries.length) {
+                    sections.push(`<div class="poe-mod-section">${implicitEntries.map(entry => renderTooltipMod(entry, showRange)).join("")}</div>`);
+                }
+                if (otherEntries.length) {
+                    sections.push(`<div class="poe-mod-section">${otherEntries.map(entry => renderTooltipMod(entry, showRange)).join("")}</div>`);
+                }
+                if (explicitEntries.length) {
+                    sections.push(`<div class="poe-mod-section">${explicitEntries.map(entry => renderTooltipMod(entry, showRange)).join("")}</div>`);
+                } else if (item.category === "equipment" && item.rarity !== "unique" && item.rarity !== "god") {
+                    sections.push(`<div class="poe-mod-section"><div class="item-tooltip-empty">No explicit modifiers.</div></div>`);
+                }
+
+                return `
+                    <div class="item-tooltip-inner rarity-${item.rarity}">
+                        <div class="item-tooltip-header">
+                            <div class="item-tooltip-name rarity-${item.rarity}">${title}</div>
+                            <div class="tiny item-tooltip-subtitle">${escapeHtml(subtitleParts.join(" · "))}</div>
+                            ${item.flavor ? `<div class="tiny item-tooltip-flavor">${escapeHtml(item.flavor)}</div>` : ""}
+                        </div>
+                        ${sections.join(`<div class="poe-mod-divider"></div>`)}
+                        ${explicitEntries.some(entry => entry.rangeSuffix) ? `<div class="tiny item-tooltip-hint">Hold Alt to see each affix's full tier value range</div>` : ""}
+                    </div>
+                `;
+            }
+
+            function positionTooltip(target, event) {
+                if (!target) return;
+                const offset = 18;
+                const padding = 12;
+                const maxLeft = window.innerWidth - padding;
+                const maxTop = window.innerHeight - padding;
+                const left = Math.min(event.clientX + offset, maxLeft);
+                const top = Math.min(event.clientY + offset, maxTop);
+                target.style.left = `${left}px`;
+                target.style.top = `${top}px`;
+            }
+
+            function showItemTooltip(item, comparison, event) {
+                if (!el.itemTooltip || !item) return;
+                state.tooltipItem = item;
+                el.itemTooltip.hidden = false;
+                el.itemTooltip.innerHTML = buildItemTooltipHtml(item);
+                positionTooltip(el.itemTooltip, event);
+            }
+
+            function hideItemTooltip() {
+                if (!el.itemTooltip) return;
+                state.tooltipItem = null;
+                el.itemTooltip.hidden = true;
+                el.itemTooltip.innerHTML = "";
+            }
+
+            function refreshItemTooltip() {
+                if (!el.itemTooltip || el.itemTooltip.hidden || !state.tooltipItem) return;
+                el.itemTooltip.innerHTML = buildItemTooltipHtml(state.tooltipItem);
+            }
+
+            // =====================================================================
+            // UI RENDERING
+            // =====================================================================
+            function renderLootList(list, target, selectedId) {
+                if (!list.length) {
+                    target.innerHTML = `
+                        <article class="empty-drop-card">
+                            <div class="section-title">No Drops</div>
+                            <div class="tiny">This run rolled zero items. That is a valid outcome for a low-volume kill simulation.</div>
+                        </article>
+                    `;
+                    return;
+                }
+
+                target.innerHTML = list.map(item => {
+                    const title = escapeHtml(formatItemTitle(item));
+                    const meta = [capitalize(item.category), capitalize(item.rarity), item.category === "equipment" && item.slot ? capitalize(item.slot) : null, `Item Level ${item.itemLevel}`].filter(Boolean).join(" · ");
+                    const details = item.category === "equipment"
+                        ? `${item.prefixes.length + item.suffixes.length} explicit mods`
+                        : item.stackCount > 1 ? `${item.stackCount}x stack` : item.flavor || "No special notes";
+                    const modSummary = escapeHtml(formatModSummary(item));
+                    return `
+                        <article class="loot-item poe-card rarity-${item.rarity}-card ${item.id === selectedId ? 'selected' : ''}" data-item-id="${escapeHtml(item.id)}" title="${modSummary}">
+                            <div class="loot-top">
+                                <div>
+                                    <div class="loot-name rarity-${item.rarity}">${title}</div>
+                                    <div class="loot-meta">${escapeHtml(meta)}</div>
+                                </div>
+                                <span class="pill ${item.rarity === 'normal' ? '' : item.rarity}">${escapeHtml(capitalize(item.rarity))}</span>
+                            </div>
+                            <div class="loot-flavor">${escapeHtml(details)}</div>
+                            <div class="loot-card-footer">
+                                ${renderModifierEntries(item)}
+                            </div>
+                        </article>
+                    `;
+                }).join("");
+            }
+
+            function getBestComparison(item) {
+                if (!item || item.category !== "equipment") return null;
+                const peers = state.inventory.filter(other => other.category === "equipment" && other.slot === item.slot && other.id !== item.id);
+                if (!peers.length) return null;
+                return peers.slice().sort((a, b) => b.score - a.score)[0] || null;
+            }
+
+            function renderDetail(item) {
+                if (!item) {
+                    el.detailPanel.innerHTML = `
+                        <div class="section-title">Item Inspection</div>
+                        <div class="tiny">Select any item from the result list or inventory to inspect its mods, score, and comparison target.</div>
+                    `;
+                    return;
+                }
+
+                const comparison = getBestComparison(item);
+                const computedStats = item.category === "equipment" ? computeEquipmentStats(item) : {};
+                const currencyEffect = item.category === "currency"
+                    ? (STACKABLE_ITEMS[item.stackId] && STACKABLE_ITEMS[item.stackId].effect) || (item.currencyEffect || "Trade currency for economy and crafting progression.")
+                    : null;
+                const statRows = [
+                    ["Instance", item.instanceId || item.id],
+                    ["Category", capitalize(item.category)],
+                    ["Rarity", capitalize(item.rarity)],
+                    ["Slot", item.slot ? capitalize(item.slot) : "-"],
+                    ["Base Level", item.baseLevel || item.itemLevel],
+                    ["Base", item.baseName || item.name],
+                    ["Base Type", item.itemType || item.category],
+                    ["Item Level", item.itemLevel],
+                    ["Requirements", buildRequirementsText(item.requirements)],
+                    ["Score", round(item.score, 2)]
+                ];
+                if (currencyEffect) statRows.push(["Currency Effect", currencyEffect]);
+
+                const mods = [];
+                for (const mod of item.implicitMods || []) mods.push({ label: "Implicit", text: mod });
+                for (const mod of item.prefixes || []) mods.push({ label: "Prefix", text: `${mod.name}: ${mod.text}`, tags: mod.tags, group: mod.group, tier: mod.tier });
+                for (const mod of item.suffixes || []) mods.push({ label: "Suffix", text: `${mod.name}: ${mod.text}`, tags: mod.tags, group: mod.group, tier: mod.tier });
+                for (const mod of item.explicitMods || []) mods.push({ label: "Explicit", text: mod });
+                for (const mod of item.special || []) mods.push({ label: item.rarity === "god" ? "God Mechanic" : "Special", text: mod });
+
+                el.detailPanel.innerHTML = `
+                    <div class="section-title">Item Inspection</div>
+                    <div class="detail-head">
+                        <div class="detail-name rarity-${item.rarity}">${escapeHtml(formatItemTitle(item))}</div>
+                        <div class="detail-line">
+                            <span class="pill ${item.rarity === 'normal' ? '' : item.rarity}">${escapeHtml(capitalize(item.rarity))}</span>
+                            <span class="pill">${escapeHtml(capitalize(item.category))}</span>
+                            ${item.slot ? `<span class="pill">${escapeHtml(capitalize(item.slot))}</span>` : ''}
+                            <span class="pill">Item Level ${escapeHtml(String(item.itemLevel))}</span>
+                            <span class="pill good">Score ${escapeHtml(String(round(item.score, 2)))}</span>
+                        </div>
+                    </div>
+                    <table class="table">
+                        <tbody>
+                            ${statRows.map(([label, value]) => `<tr><th>${escapeHtml(label)}</th><td>${escapeHtml(String(value))}</td></tr>`).join("")}
+                        </tbody>
+                    </table>
+                    ${item.category === "equipment" ? `
+                        <div>
+                            <div class="section-title">Equipment Stats</div>
+                            <table class="table"><tbody>${renderStatRows(computedStats)}</tbody></table>
+                        </div>
+                        <div>
+                            <div class="section-title">Tags</div>
+                            ${renderTagChips(item.tags)}
+                        </div>
+                    ` : ``}
+                    ${item.flavor ? `<div class="tiny">${escapeHtml(item.flavor)}</div>` : ''}
+                    <div>
+                        <div class="section-title">Modifiers</div>
+                        <div class="mod-list">${mods.length ? mods.map(mod => `<div class="mod"><strong>${escapeHtml(mod.label)}</strong><span>${escapeHtml(mod.text)}</span>${mod.tier ? `<div class="tiny">Tier T${escapeHtml(String(mod.tier))}${mod.group ? ` · Group ${escapeHtml(mod.group)}` : ``}</div>` : ``}${mod.tags?.length ? renderTagChips(mod.tags) : ``}</div>`).join("") : `<div class="mod"><strong>None</strong><span>This item currently has no explicit modifiers.</span></div>`}</div>
+                    </div>
+                    ${item.category === "currency" && currencyEffect ? `<div class="mod"><strong>Currency Effect</strong><span>${escapeHtml(currencyEffect)}</span></div>` : ""}
+                    <div class="compare">
+                        <div class="section-title">Comparison</div>
+                        ${comparison ? `
+                            <div class="tiny">Best same-slot item in inventory: <strong>${escapeHtml(formatItemTitle(comparison))}</strong></div>
+                            <table class="table">
+                                <tbody>
+                                    <tr><th>Selected Score</th><td>${escapeHtml(String(round(item.score, 2)))}</td></tr>
+                                    <tr><th>Best Peer Score</th><td>${escapeHtml(String(round(comparison.score, 2)))}</td></tr>
+                                    <tr><th>Delta</th><td>${escapeHtml(String(round(item.score - comparison.score, 2)))}</td></tr>
+                                </tbody>
+                            </table>
+                        ` : `<div class="tiny">No same-slot comparison target available yet.</div>`}
+                    </div>
+                `;
+            }
+
+            function renderMetrics(summary, result) {
+                const rarityParts = RARITY_ORDER.map(rarity => `${capitalize(rarity)} ${summary.countsByRarity[rarity] || 0}`).join(" | ");
+                el.metricCards.innerHTML = `
+                    <div class="card"><div class="label">Drops</div><div class="value">${summary.total}</div></div>
+                    <div class="card"><div class="label">Rolls</div><div class="value">${result.rollCount}</div></div>
+                    <div class="card"><div class="label">Guaranteed</div><div class="value">${result.guaranteedCount}</div></div>
+                    <div class="card"><div class="label">Average Score</div><div class="value">${round(summary.averageScore, 1)}</div></div>
+                `;
+
+                el.statsGrid.innerHTML = CATEGORY_ORDER.map(category => `
+                    <div class="card">
+                        <div class="label">${escapeHtml(capitalize(category))}</div>
+                        <div class="value">${summary.countsByCategory[category] || 0}</div>
+                    </div>
+                `).join("");
+
+                el.runSummaryPills.innerHTML = `
+                    <span class="pill">${escapeHtml(result.profile.monster.name)}</span>
+                    <span class="pill">${escapeHtml(result.profile.area.name)} · L${escapeHtml(String(result.profile.areaLevel))}</span>
+                    <span class="pill">${escapeHtml(result.profile.difficulty.name)}</span>
+                    <span class="pill">Monster L${escapeHtml(String(result.profile.monsterLevel))}</span>
+                    <span class="pill good">${escapeHtml(rarityParts)}</span>
+                `;
+            }
+
+            function getItemSlotIcon(item) {
+                if (item.category === "currency") return `<span class="item-icon-emoji icon-currency" aria-hidden="true">◈</span>`;
+                if (item.category === "potion") return `<span class="item-icon-emoji icon-potion" aria-hidden="true">🧪</span>`;
+                if (item.category === "consumable") return `<span class="item-icon-emoji icon-consumable" aria-hidden="true">📜</span>`;
+                if (item.category === "special") return `<span class="item-icon-emoji icon-special" aria-hidden="true">✨</span>`;
+                if (item.category === "miscellaneous") return `<span class="item-icon-emoji icon-misc" aria-hidden="true">▣</span>`;
+                const iconMap = {
+                    weapon: "⚔️",
+                    offhand: "🛡️",
+                    helm: "🪖",
+                    chest: "👕",
+                    gloves: "🧤",
+                    boots: "👢",
+                    ring: "💍",
+                    amulet: "📿",
+                    belt: "🎗️"
+                };
+                const emoji = iconMap[item.slot] || "▣";
+                return `<span class="item-icon-emoji icon-${escapeHtml(item.slot || "default")}" aria-hidden="true">${emoji}</span>`;
+            }
+
+            function compareInventoryItems(a, b) {
+                const categoryDiff = CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category);
+                if (categoryDiff !== 0) return categoryDiff;
+                if (a.category === "equipment") {
+                    const slotDiff = SLOT_ORDER.indexOf(a.slot) - SLOT_ORDER.indexOf(b.slot);
+                    if (slotDiff !== 0) return slotDiff;
+                }
+                const rarityDiff = RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity);
+                if (rarityDiff !== 0) return rarityDiff;
+                return (a.name || "").localeCompare(b.name || "");
+            }
+
+            function updateBulkDeleteButtons() {
+                document.querySelectorAll(".bulk-delete-btn").forEach(button => {
+                    button.classList.toggle("armed", button.dataset.bulkRarity === state.pendingBulkRarity);
+                });
+            }
+
+            function requestBulkDelete(rarity) {
+                if (state.pendingBulkRarity === rarity) {
+                    performBulkDelete(rarity);
+                    return;
+                }
+                state.pendingBulkRarity = rarity;
+                if (state.pendingBulkTimeout) clearTimeout(state.pendingBulkTimeout);
+                state.pendingBulkTimeout = setTimeout(() => {
+                    state.pendingBulkRarity = null;
+                    state.pendingBulkTimeout = null;
+                    updateBulkDeleteButtons();
+                }, 4000);
+                updateBulkDeleteButtons();
+            }
+
+            function performBulkDelete(rarity) {
+                state.inventory = state.inventory.filter(item => item.rarity !== rarity);
+                state.pendingBulkRarity = null;
+                if (state.pendingBulkTimeout) {
+                    clearTimeout(state.pendingBulkTimeout);
+                    state.pendingBulkTimeout = null;
+                }
+                updateBulkDeleteButtons();
+                if (state.selectionId && !state.inventory.some(item => item.id === state.selectionId)) {
+                    state.selectionId = null;
+                    renderDetail(null);
+                }
+                renderInventory();
+                renderAffixTable();
+            }
+
+            function renderInventory() {
+                el.inventoryCountPill.textContent = `${state.inventory.length} items`;
+                const trimmed = state.inventory.slice(-MAX_INVENTORY_SLOTS);
+                const bagItems = state.inventorySort === "type" ? trimmed.slice().sort(compareInventoryItems) : trimmed;
+                const usedTabs = Math.max(1, Math.ceil(bagItems.length / SLOTS_PER_TAB));
+                const tabCount = Math.min(MAX_INVENTORY_TABS, Math.max(usedTabs, state.activeInventoryTab + 1));
+                state.activeInventoryTab = clamp(state.activeInventoryTab, 0, tabCount - 1);
+
+                el.inventoryTabBar.innerHTML = Array.from({ length: tabCount }, (_, tabIndex) => {
+                    const start = tabIndex * SLOTS_PER_TAB;
+                    const countInTab = Math.max(0, Math.min(SLOTS_PER_TAB, bagItems.length - start));
+                    const active = tabIndex === state.activeInventoryTab;
+                    return `<button type="button" class="inventory-tab-button${active ? " active" : ""}" data-tab-index="${tabIndex}">T${tabIndex + 1}${countInTab ? `<span class="tab-count">${countInTab}</span>` : ``}</button>`;
+                }).join("");
+
+                const start = state.activeInventoryTab * SLOTS_PER_TAB;
+                const tabItems = bagItems.slice(start, start + SLOTS_PER_TAB);
+                const cells = Array.from({ length: SLOTS_PER_TAB }, (_, index) => {
+                    const item = tabItems[index];
+                    if (!item) {
+                        return `<div class="bagpack-slot empty" aria-label="Empty slot"></div>`;
+                    }
+                    const rarityClass = item.rarity ? `rarity-${item.rarity}` : "rarity-normal";
+                    return `
+                        <div class="bagpack-slot ${rarityClass}" data-item-id="${escapeHtml(item.id)}" title="${escapeHtml(formatItemTitle(item))}">
+                            <div class="item-icon">${getItemSlotIcon(item)}</div>
+                        </div>
+                    `;
+                });
+                el.inventoryList.innerHTML = `<div class="bagpack-grid">${cells.join("")}</div>`;
+            }
+
+            function renderHistory() {
+                if (!state.history.length) {
+                    el.historyList.innerHTML = `<div class="tiny">No history yet.</div>`;
+                    return;
+                }
+                el.historyList.innerHTML = state.history.slice(0, 12).map(entry => `
+                    <article class="history-item">
+                        <div><strong>${escapeHtml(entry.seed)}</strong></div>
+                        <div class="tiny">${escapeHtml(entry.monster)} · ${escapeHtml(entry.area)} · ${escapeHtml(entry.difficulty)}</div>
+                        <div class="tiny">Items: ${escapeHtml(String(entry.totalItems))} · Rolls: ${escapeHtml(String(entry.rolls))} · Best: ${escapeHtml(entry.bestItem || "-")}</div>
+                    </article>
+                `).join("");
+            }
+
+            function renderAffixTable() {
+                const tallies = {};
+                for (const item of state.inventory) {
+                    for (const mod of [...(item.prefixes || []), ...(item.suffixes || [])]) {
+                        tallies[mod.name] = (tallies[mod.name] || 0) + 1;
+                    }
+                }
+                const rows = Object.entries(tallies)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 8);
+                el.affixTable.innerHTML = rows.length ? `
+                    <tr><th>Affix</th><th>Count</th></tr>
+                    ${rows.map(([name, count]) => `<tr><td>${escapeHtml(name)}</td><td>${count}</td></tr>`).join("")}
+                ` : `<tr><td class="tiny">No affixes rolled yet.</td></tr>`;
+            }
+
+            function renderDebugSnapshot(context, result) {
+                const summary = summariseRun(result);
+                const snapshot = {
+                    seed: context.seed,
+                    monster: context.monsterId,
+                    area: context.areaId,
+                    difficulty: context.difficultyId,
+                    monsterLevel: context.monsterLevel,
+                    areaLevel: context.areaLevel,
+                    itemLevel: context.itemLevel,
+                    quantityMultiplier: round(result.quantityMultiplier, 3),
+                    rarityMultiplier: round(result.rarityMultiplier, 3),
+                    rollCount: result.rollCount,
+                    guaranteedCount: result.guaranteedCount,
+                    counts: summary.countsByCategory,
+                    rarity: summary.countsByRarity
+                };
+                el.debugSnapshot.textContent = JSON.stringify(snapshot, null, 2);
+                el.exportPreview.value = JSON.stringify(buildExportPayload(context, result), null, 2);
+            }
+
+            function buildExportPayload(context, result) {
+                const summary = summariseRun(result);
+                return {
+                    generatedAt: new Date().toISOString(),
+                    context,
+                    result: {
+                        rollCount: result.rollCount,
+                        guaranteedCount: result.guaranteedCount,
+                        quantityMultiplier: result.quantityMultiplier,
+                        rarityMultiplier: result.rarityMultiplier,
+                        summary,
+                        items: result.items
+                    },
+                    history: state.history,
+                    inventorySize: state.inventory.length,
+                    config: {
+                        rarityWeights: CONFIG.rarityWeights,
+                        categoryWeights: CONFIG.categoryWeights,
+                        rarityLimits: CONFIG.rarityLimits
+                    }
+                };
+            }
+
+            function updateDataPanels() {
+                el.itemModelSummary.innerHTML = `
+                    Five rarities are supported: <span class="rarity-normal">Normal</span>, <span class="rarity-magic">Magic</span>, <span class="rarity-rare">Rare</span>, <span class="rarity-unique">Unique</span>, and <span class="rarity-god">God</span>.
+                    Equipment uses leveled base items, item level gating, weighted affix selection, base stat blocks, and configurable prefix/suffix limits.
+                `;
+                el.affixSummary.innerHTML = `
+                    Affixes are data-driven. Each mod defines allowed slots, tags, exclusive groups, a weighted tier table, and a formatter that renders the final stat line.
+                    Magic and rare items use separate prefix/suffix budgets and can still end up with zero explicit mods.
+                `;
+                el.specialSummary.innerHTML = `
+                    Unique and god items are predefined item models with fixed, variable, and mechanic-specific rules. Areas, monsters, and base items also expose level data so the browser MVP behaves more like a PoE-style progression slice.
+                `;
+            }
+
+            function syncInputs() {
+                el.quantityValue.value = el.quantityRange.value;
+                el.rarityValue.value = el.rarityRange.value;
+            }
+
+            function getContextFromForm() {
+                const resolved = getMonsterProfile(el.monsterSelect.value, el.areaSelect.value, el.difficultySelect.value);
+                const quantityMultiplier = clamp(Number(el.quantityValue.value || 0), 0, 300) / 100;
+                const rarityMultiplier = clamp(Number(el.rarityValue.value || 0), 0, 300) / 100;
+                const rawContext = {
+                    seed: `run-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+                    monsterId: el.monsterSelect.value,
+                    areaId: el.areaSelect.value,
+                    difficultyId: el.difficultySelect.value,
+                    monsterLevel: resolved.monsterLevel,
+                    areaLevel: resolved.areaLevel,
+                    itemLevel: resolved.areaLevel,
+                    quantityMultiplier,
+                    rarityMultiplier,
+                    inventoryCap: clamp(Number(el.inventoryCapInput.value || MAX_INVENTORY_SLOTS), 60, MAX_INVENTORY_SLOTS)
+                };
+                return normalizeContext(rawContext);
+            }
+
+            function runSimulation(dropCountOverride) {
+                const context = getContextFromForm();
+                const runs = clamp(Number(dropCountOverride || el.rollsInput.value || 1), 1, 5000);
+                const profile = context.profile;
+                el.engineStatus.textContent = "Rolling";
+                el.engineStatus.className = "pill warn";
+
+                const combinedItems = [];
+                let totalRollCount = 0;
+                let totalGuaranteedCount = 0;
+                let lastRun = null;
+                for (let index = 0; index < runs; index++) {
+                    const runSeed = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}-${index}`;
+                    const result = generateRun({ ...context, seed: runSeed });
+                    combinedItems.push(...result.items);
+                    totalRollCount += result.rollCount;
+                    totalGuaranteedCount += result.guaranteedCount;
+                    lastRun = result;
+                }
+
+                const result = {
+                    items: combinedItems,
+                    profile,
+                    rollCount: totalRollCount,
+                    guaranteedCount: totalGuaranteedCount,
+                    quantityMultiplier: lastRun ? lastRun.quantityMultiplier : 1,
+                    rarityMultiplier: lastRun ? lastRun.rarityMultiplier : 1
+                };
+                const summary = summariseRun(result);
+
+                state.currentRun = result.items;
+                state.lastResult = result;
+                state.lastSeed = context.seed;
+                mergeInventory(result.items);
+
+                state.selectionId = result.items[0]?.id || null;
+
+                const historyEntry = {
+                    seed: context.seed,
+                    monster: profile.monster.name,
+                    area: `${profile.area.name} (L${profile.areaLevel})`,
+                    difficulty: profile.difficulty.name,
+                    totalItems: summary.total,
+                    rolls: result.rollCount,
+                    bestItem: summary.bestItem ? formatItemTitle(summary.bestItem) : "-",
+                    timestamp: new Date().toISOString()
+                };
+                state.history.unshift(historyEntry);
+                state.history = state.history.slice(0, 25);
+                saveHistory();
+
+                renderMetrics(summary, result);
+                renderLootList(result.items, el.lootList, state.selectionId);
+                renderInventory();
+                renderHistory();
+                renderAffixTable();
+                renderDetail(result.items.find(item => item.id === state.selectionId) || result.items[0] || null);
+                renderDebugSnapshot(context, result);
+                updateDataPanels();
+                makeRarityTable(1 + context.rarityMultiplier + profile.rarityBonus);
+                makeMonsterTable(profile);
+
+                el.engineStatus.textContent = "Ready";
+                el.engineStatus.className = "pill good";
+                return result;
+            }
+
+            function generateSingleDrop() {
+                const context = getContextFromForm();
+                const result = generateRun(context);
+                const summary = summariseRun(result);
+                state.currentRun = result.items;
+                state.lastResult = result;
+                state.selectionId = result.items[0]?.id || null;
+                mergeInventory(result.items);
+                renderCodexDetail(state.selectedBaseId);
+                renderMetrics(summary, result);
+                renderLootList(result.items, el.lootList, state.selectionId);
+                renderInventory();
+                renderAffixTable();
+                renderHistory();
+                renderDebugSnapshot(context, result);
+                renderDetail(result.items[0] || null);
+            }
+
+            function clearInventory() {
+                state.inventory = [];
+                state.currentRun = [];
+                state.selectionId = null;
+                state.history = [];
+                state.activeInventoryTab = 0;
+                try {
+                    localStorage.removeItem(STORAGE_KEY);
+                } catch (error) {
+                    // Ignore storage failures.
+                }
+                renderInventory();
+                renderHistory();
+                renderAffixTable();
+                renderDetail(null);
+                el.metricCards.innerHTML = "";
+                el.lootList.innerHTML = "";
+                el.statsGrid.innerHTML = "";
+                el.runSummaryPills.innerHTML = "";
+                el.debugSnapshot.textContent = "{}";
+                el.exportPreview.value = "";
+                el.inventoryCountPill.textContent = "0 items";
+            }
+
+            function exportResults() {
+                const context = getContextFromForm();
+                const result = state.lastResult || (state.currentRun.length ? {
+                    items: state.currentRun,
+                    rollCount: state.currentRun.length,
+                    guaranteedCount: 0,
+                    quantityMultiplier: context.quantityMultiplier,
+                    rarityMultiplier: context.rarityMultiplier,
+                    profile: getMonsterProfile(context.monsterId, context.areaId, context.difficultyId)
+                } : generateRun(context));
+                const payload = buildExportPayload(context, result);
+                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `loot-sim-${context.seed.replace(/[^a-z0-9-_]+/gi, "-")}.json`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            }
+
+            function rerollSeed() {
+                runSimulation(Number(el.rollsInput.value || 1));
+            }
+
+            function updateModelTables() {
+                const profile = getMonsterProfile(el.monsterSelect.value, el.areaSelect.value, el.difficultySelect.value);
+                el.monsterSelect.value = profile.monsterId;
+                el.areaSelect.value = profile.areaId;
+                el.difficultySelect.value = profile.difficultyId;
+                el.areaLevelDisplay.value = String(profile.areaLevel);
+                makeRarityTable(1 + clamp(Number(el.rarityValue.value || 0), 0, 300) / 100 + profile.rarityBonus);
+                makeMonsterTable(profile);
+                el.debugSnapshot.textContent = JSON.stringify({
+                    rarityWeights: scaleRarityWeights(CONFIG.rarityWeights, 1 + clamp(Number(el.rarityValue.value || 0), 0, 300) / 100 + profile.rarityBonus),
+                    categoryWeights: profile.categoryWeights,
+                    areaLevel: profile.areaLevel,
+                    monsterLevel: profile.monsterLevel,
+                    monsterBonus: profile.quantityBonus,
+                    rarityBonus: profile.rarityBonus
+                }, null, 2);
+            }
+
+            function renderCodexAreaTable() {
+                const rows = Object.entries(CONFIG.areas).map(([id, area]) => ({ id, ...area }));
+                el.codexAreaTable.innerHTML = `
+                    <tr><th>Area</th><th>Level</th><th>Quantity</th><th>Rarity</th><th>Tags</th></tr>
+                    ${rows.map(area => `<tr><td>${escapeHtml(area.name)}</td><td>${escapeHtml(String(area.level))}</td><td>${escapeHtml(formatPercent(area.quantityBonus * 100))}</td><td>${escapeHtml(formatPercent(area.rarityBonus * 100))}</td><td>${escapeHtml((area.tags || []).join(", "))}</td></tr>`).join("")}
+                `;
+            }
+
+            function renderBaseItemTable() {
+                el.baseItemCountPill.textContent = `${BASE_ITEMS.length} bases`;
+                el.baseItemTable.innerHTML = `
+                    <tr><th>Base</th><th>Slot</th><th>Level</th><th>Type</th><th>Stats</th></tr>
+                    ${BASE_ITEMS.map(base => `<tr data-base-id="${escapeHtml(base.id)}"><td>${escapeHtml(base.name)}</td><td>${escapeHtml(capitalize(base.slot))}</td><td>${escapeHtml(String(base.minLevel))}</td><td>${escapeHtml(base.itemType)}</td><td>${escapeHtml(Object.entries(base.baseStats).map(([key, value]) => `${formatStatLabel(key)} ${formatStatValue(key, value)}`).join(", "))}</td></tr>`).join("")}
+                `;
+            }
+
+            function renderModifierLibrary() {
+                el.modifierCountPill.textContent = `${AFFIX_DEFS.length} modifiers`;
+                el.modifierLibraryTable.innerHTML = `
+                    <tr><th>Modifier</th><th>Type</th><th>Tier Floor</th><th>Group</th><th>Tags</th><th>Slots</th></tr>
+                    ${AFFIX_DEFS.map(def => `<tr><td>${escapeHtml(def.name)}</td><td>${escapeHtml(capitalize(def.kind))}</td><td>${escapeHtml(String(Math.min(...def.tiers.map(tier => tier.minLevel))))}</td><td>${escapeHtml(def.group || "-")}</td><td>${escapeHtml((def.tags || []).join(", "))}</td><td>${escapeHtml(def.slots.map(capitalize).join(", "))}</td></tr>`).join("")}
+                `;
+            }
+
+            function renderCurrencyLibrary() {
+                const entries = Object.entries(STACKABLE_ITEMS).filter(([, data]) => data.category === "currency");
+                el.currencyCountPill.textContent = `${entries.length} currencies`;
+                el.currencyLibraryTable.innerHTML = `
+                    <tr><th>Currency</th><th>Tier</th><th>Purpose</th><th>Notes</th></tr>
+                    ${entries.map(([id, data]) => `<tr><td>${escapeHtml(data.name)}</td><td>${escapeHtml(String(data.valueTier))}</td><td>${escapeHtml(data.effect || "Economy and crafting utility")}</td><td>${escapeHtml(data.notes || "Crafting and progression")}</td></tr>`).join("")}
+                `;
+            }
+
+            function renderCodexDetail(baseId) {
+                const base = BASE_ITEMS.find(item => item.id === baseId) || BASE_ITEMS[0];
+                state.selectedBaseId = base.id;
+                el.codexDetail.innerHTML = `
+                    <div class="stack">
+                        <div>
+                            <div class="detail-name">${escapeHtml(base.name)}</div>
+                            <div class="tiny">${escapeHtml(capitalize(base.slot))} · ${escapeHtml(base.itemType)} · Base Level ${escapeHtml(String(base.minLevel))}</div>
+                        </div>
+                        <div>
+                            <div class="section-title">Base Stats</div>
+                            <table class="table"><tbody>${renderStatRows(base.baseStats)}</tbody></table>
+                        </div>
+                        <div>
+                            <div class="section-title">Tags</div>
+                            ${renderTagChips(base.tags)}
+                        </div>
+                        <div>
+                            <div class="section-title">Implicit Modifiers</div>
+                            <div class="mod-list">${(base.implicitModifiers || []).map(mod => `<div class="mod"><span>${escapeHtml(mod)}</span></div>`).join("")}</div>
+                        </div>
+                        <div>
+                            <div class="section-title">Requirements</div>
+                            <div class="tiny">${escapeHtml(buildRequirementsText(base.requirements))}</div>
+                        </div>
+                        <div>
+                            <div class="section-title">Allowed Affix Groups</div>
+                            ${renderTagChips(base.allowedAffixGroups)}
+                        </div>
+                    </div>
+                `;
+            }
+
+            function setActiveView(viewName) {
+                state.activeView = viewName;
+                document.querySelectorAll("[data-view-panel]").forEach(panel => {
+                    panel.classList.toggle("active", panel.dataset.viewPanel === viewName);
+                });
+                document.querySelectorAll(".view-button").forEach(button => {
+                    button.classList.toggle("active", button.dataset.view === viewName);
+                });
+            }
+
+            // =====================================================================
+            // APPLICATION BOOTSTRAP
+            // =====================================================================
+            function init() {
+                buildSelectOptions(el.monsterSelect, Object.entries(CONFIG.monsters).map(([value, data]) => ({ value, label: data.name })));
+                buildSelectOptions(el.areaSelect, Object.entries(CONFIG.areas).map(([value, data]) => ({ value, label: `${data.name} (L${data.level})` })));
+                buildSelectOptions(el.difficultySelect, Object.entries(CONFIG.difficulties).map(([value, data]) => ({ value, label: data.name })));
+
+                el.monsterSelect.value = "forest_beast" in CONFIG.monsters ? "forest_beast" : Object.keys(CONFIG.monsters)[0];
+                el.areaSelect.value = "verdant_fields";
+                el.difficultySelect.value = "normal";
+
+                syncInputs();
+                updateDataPanels();
+                updateModelTables();
+                renderCodexAreaTable();
+                renderBaseItemTable();
+                renderModifierLibrary();
+                renderCurrencyLibrary();
+                renderCodexDetail(state.selectedBaseId);
+                renderInventory();
+                renderHistory();
+                renderAffixTable();
+                renderDetail(null);
+                el.exportPreview.value = JSON.stringify(buildExportPayload(getContextFromForm(), {
+                    items: [],
+                    rollCount: 0,
+                    guaranteedCount: 0,
+                    quantityMultiplier: 0,
+                    rarityMultiplier: 0,
+                    profile: getMonsterProfile(el.monsterSelect.value, el.areaSelect.value, el.difficultySelect.value)
+                }), null, 2);
+
+                el.quantityRange.addEventListener("input", () => { el.quantityValue.value = el.quantityRange.value; updateModelTables(); });
+                el.quantityValue.addEventListener("input", () => { el.quantityRange.value = el.quantityValue.value; updateModelTables(); });
+                el.rarityRange.addEventListener("input", () => { el.rarityValue.value = el.rarityRange.value; updateModelTables(); });
+                el.rarityValue.addEventListener("input", () => { el.rarityRange.value = el.rarityValue.value; updateModelTables(); });
+
+                el.monsterSelect.addEventListener("change", updateModelTables);
+                el.areaSelect.addEventListener("change", updateModelTables);
+                el.difficultySelect.addEventListener("change", updateModelTables);
+                el.simulateButton.addEventListener("click", () => runSimulation(Number(el.rollsInput.value || 1)));
+                el.quickDropButton.addEventListener("click", generateSingleDrop);
+                el.clearButton.addEventListener("click", clearInventory);
+                el.exportButton.addEventListener("click", exportResults);
+                el.rerollSeedButton.addEventListener("click", () => {
+                    runSimulation(Number(el.rollsInput.value || 1));
+                });
+                el.viewSwitch.addEventListener("click", event => {
+                    const button = event.target.closest(".view-button");
+                    if (!button) return;
+                    setActiveView(button.dataset.view);
+                });
+
+                el.lootList.addEventListener("click", event => {
+                    const itemElement = event.target.closest(".loot-item");
+                    if (!itemElement) return;
+                    state.selectionId = itemElement.dataset.itemId;
+                    const found = state.currentRun.find(item => item.id === state.selectionId) || state.inventory.find(item => item.id === state.selectionId);
+                    renderLootList(state.currentRun, el.lootList, state.selectionId);
+                    renderDetail(found || null);
+                });
+
+                el.lootList.addEventListener("mousemove", event => {
+                    const itemElement = event.target.closest(".loot-item");
+                    if (!itemElement) return hideItemTooltip();
+                    const found = state.currentRun.find(item => item.id === itemElement.dataset.itemId) || state.inventory.find(item => item.id === itemElement.dataset.itemId);
+                    if (!found) return hideItemTooltip();
+                    showItemTooltip(found, getBestComparison(found), event);
+                });
+
+                el.lootList.addEventListener("mouseleave", hideItemTooltip);
+
+                window.addEventListener("keydown", event => {
+                    if (event.key !== "Alt" || state.altKeyHeld) return;
+                    state.altKeyHeld = true;
+                    refreshItemTooltip();
+                });
+
+                window.addEventListener("keyup", event => {
+                    if (event.key !== "Alt") return;
+                    state.altKeyHeld = false;
+                    refreshItemTooltip();
+                });
+
+                window.addEventListener("blur", () => {
+                    if (!state.altKeyHeld) return;
+                    state.altKeyHeld = false;
+                    refreshItemTooltip();
+                });
+
+                el.inventoryTabBar.addEventListener("click", event => {
+                    const button = event.target.closest("[data-tab-index]");
+                    if (!button) return;
+                    state.activeInventoryTab = clamp(Number(button.dataset.tabIndex), 0, MAX_INVENTORY_TABS - 1);
+                    renderInventory();
+                });
+
+                document.getElementById("inventorySortSelect").addEventListener("change", event => {
+                    state.inventorySort = event.target.value;
+                    renderInventory();
+                });
+
+                el.inventoryToolbar.addEventListener("click", event => {
+                    const button = event.target.closest("[data-bulk-rarity]");
+                    if (!button) return;
+                    requestBulkDelete(button.dataset.bulkRarity);
+                });
+
+                document.addEventListener("click", event => {
+                    if (!state.pendingBulkRarity) return;
+                    if (event.target.closest("[data-bulk-rarity]")) return;
+                    state.pendingBulkRarity = null;
+                    if (state.pendingBulkTimeout) {
+                        clearTimeout(state.pendingBulkTimeout);
+                        state.pendingBulkTimeout = null;
+                    }
+                    updateBulkDeleteButtons();
+                });
+
+                el.inventoryList.addEventListener("click", event => {
+                    const itemElement = event.target.closest("[data-item-id]");
+                    if (!itemElement) return;
+                    state.selectionId = itemElement.dataset.itemId;
+                    const found = state.inventory.find(item => item.id === state.selectionId);
+                    renderInventory();
+                    renderDetail(found || null);
+                });
+
+                el.inventoryList.addEventListener("mousemove", event => {
+                    const itemElement = event.target.closest("[data-item-id]");
+                    if (!itemElement) return hideItemTooltip();
+                    const found = state.inventory.find(item => item.id === itemElement.dataset.itemId);
+                    if (!found) return hideItemTooltip();
+                    showItemTooltip(found, getBestComparison(found), event);
+                });
+
+                el.inventoryList.addEventListener("mouseleave", hideItemTooltip);
+
+                document.querySelectorAll("[data-collapse-target]").forEach(button => {
+                    button.addEventListener("click", () => {
+                        const panel = document.getElementById(button.dataset.collapseTarget);
+                        if (!panel) return;
+                        const collapsed = panel.classList.toggle("is-collapsed");
+                        button.textContent = collapsed ? "Expand" : "Collapse";
+                    });
+                });
+
+                document.addEventListener("scroll", hideItemTooltip, true);
+                window.addEventListener("blur", hideItemTooltip);
+
+                el.baseItemTable.addEventListener("click", event => {
+                    const row = event.target.closest("tr[data-base-id]");
+                    if (!row) return;
+                    renderCodexDetail(row.dataset.baseId);
+                });
+
+                el.engineStatus.textContent = "Idle";
+                el.engineStatus.className = "pill warn";
+            }
+
+            async function bootstrap() {
+                try {
+                    await loadAffixLibrary();
+                } catch (error) {
+                    console.error("Failed to load affixes.json", error);
+                    el.dataLoadError.hidden = false;
+                    el.engineStatus.textContent = "Data load failed";
+                    el.engineStatus.className = "pill warn";
+                    el.simulateButton.disabled = true;
+                    el.quickDropButton.disabled = true;
+                    return;
+                }
+                init();
+            }
+
+            bootstrap();
+        })();
+    </script>
+</body>
+</html>

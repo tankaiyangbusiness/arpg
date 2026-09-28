@@ -1,0 +1,1393 @@
+{
+  "affixes": [
+    {
+      "id": "life",
+      "name": "Maximum Life",
+      "kind": "prefix",
+      "group": "life",
+      "exclusiveGroup": "life",
+      "slots": [
+        "helm",
+        "chest",
+        "gloves",
+        "boots",
+        "amulet",
+        "ring",
+        "belt",
+        "offhand"
+      ],
+      "tags": [
+        "life",
+        "resource"
+      ],
+      "statKey": "life",
+      "display": "+{value} to maximum Life",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 100,
+          "maxValue": 129,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 80,
+          "maxValue": 99,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 60,
+          "maxValue": 79,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 40,
+          "maxValue": 59,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 20,
+          "maxValue": 39,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 10,
+          "maxValue": 19,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "mana",
+      "name": "Maximum Mana",
+      "kind": "prefix",
+      "group": "mana",
+      "exclusiveGroup": "mana",
+      "slots": [
+        "amulet",
+        "ring",
+        "belt",
+        "offhand"
+      ],
+      "tags": [
+        "mana",
+        "resource"
+      ],
+      "statKey": "mana",
+      "display": "+{value} to maximum Mana",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 60,
+          "maxValue": 79,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 48,
+          "maxValue": 59,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 36,
+          "maxValue": 47,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 24,
+          "maxValue": 35,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 14,
+          "maxValue": 23,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 6,
+          "maxValue": 13,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "resistance_fire",
+      "name": "Fire Resistance",
+      "kind": "suffix",
+      "group": "resistance_fire",
+      "exclusiveGroup": "resistance_fire",
+      "slots": [
+        "helm",
+        "chest",
+        "gloves",
+        "boots",
+        "amulet",
+        "ring",
+        "belt",
+        "offhand"
+      ],
+      "tags": [
+        "resistance",
+        "fire",
+        "elemental"
+      ],
+      "statKey": "fireResist",
+      "display": "+{value}% to Fire Resistance",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 36,
+          "maxValue": 42,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 30,
+          "maxValue": 35,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 24,
+          "maxValue": 29,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 18,
+          "maxValue": 23,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 12,
+          "maxValue": 17,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 6,
+          "maxValue": 11,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "resistance_cold",
+      "name": "Cold Resistance",
+      "kind": "suffix",
+      "group": "resistance_cold",
+      "exclusiveGroup": "resistance_cold",
+      "slots": [
+        "helm",
+        "chest",
+        "gloves",
+        "boots",
+        "amulet",
+        "ring",
+        "belt",
+        "offhand"
+      ],
+      "tags": [
+        "resistance",
+        "cold",
+        "elemental"
+      ],
+      "statKey": "coldResist",
+      "display": "+{value}% to Cold Resistance",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 36,
+          "maxValue": 42,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 30,
+          "maxValue": 35,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 24,
+          "maxValue": 29,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 18,
+          "maxValue": 23,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 12,
+          "maxValue": 17,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 6,
+          "maxValue": 11,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "resistance_lightning",
+      "name": "Lightning Resistance",
+      "kind": "suffix",
+      "group": "resistance_lightning",
+      "exclusiveGroup": "resistance_lightning",
+      "slots": [
+        "helm",
+        "chest",
+        "gloves",
+        "boots",
+        "amulet",
+        "ring",
+        "belt",
+        "offhand"
+      ],
+      "tags": [
+        "resistance",
+        "lightning",
+        "elemental"
+      ],
+      "statKey": "lightningResist",
+      "display": "+{value}% to Lightning Resistance",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 36,
+          "maxValue": 42,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 30,
+          "maxValue": 35,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 24,
+          "maxValue": 29,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 18,
+          "maxValue": 23,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 12,
+          "maxValue": 17,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 6,
+          "maxValue": 11,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "resistance_chaos",
+      "name": "Chaos Resistance",
+      "kind": "suffix",
+      "group": "resistance_chaos",
+      "exclusiveGroup": "resistance_chaos",
+      "slots": [
+        "helm",
+        "chest",
+        "gloves",
+        "boots",
+        "amulet",
+        "ring",
+        "belt",
+        "offhand"
+      ],
+      "tags": [
+        "resistance",
+        "chaos"
+      ],
+      "statKey": "chaosResist",
+      "display": "+{value}% to Chaos Resistance",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 30,
+          "maxValue": 35,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 25,
+          "maxValue": 29,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 20,
+          "maxValue": 24,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 15,
+          "maxValue": 19,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 10,
+          "maxValue": 14,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 5,
+          "maxValue": 9,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "attribute_strength",
+      "name": "Strength",
+      "kind": "suffix",
+      "group": "attribute_strength",
+      "exclusiveGroup": "attribute_strength",
+      "slots": [
+        "amulet",
+        "ring",
+        "belt",
+        "helm",
+        "chest"
+      ],
+      "tags": [
+        "attribute",
+        "strength"
+      ],
+      "statKey": "strength",
+      "display": "+{value} to Strength",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 34,
+          "maxValue": 45,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 27,
+          "maxValue": 33,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 20,
+          "maxValue": 26,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 14,
+          "maxValue": 19,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 8,
+          "maxValue": 13,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 3,
+          "maxValue": 7,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "attribute_dexterity",
+      "name": "Dexterity",
+      "kind": "suffix",
+      "group": "attribute_dexterity",
+      "exclusiveGroup": "attribute_dexterity",
+      "slots": [
+        "amulet",
+        "ring",
+        "belt",
+        "helm",
+        "chest"
+      ],
+      "tags": [
+        "attribute",
+        "dexterity"
+      ],
+      "statKey": "dexterity",
+      "display": "+{value} to Dexterity",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 34,
+          "maxValue": 45,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 27,
+          "maxValue": 33,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 20,
+          "maxValue": 26,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 14,
+          "maxValue": 19,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 8,
+          "maxValue": 13,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 3,
+          "maxValue": 7,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "attribute_intelligence",
+      "name": "Intelligence",
+      "kind": "suffix",
+      "group": "attribute_intelligence",
+      "exclusiveGroup": "attribute_intelligence",
+      "slots": [
+        "amulet",
+        "ring",
+        "belt",
+        "helm",
+        "chest"
+      ],
+      "tags": [
+        "attribute",
+        "intelligence"
+      ],
+      "statKey": "intelligence",
+      "display": "+{value} to Intelligence",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 34,
+          "maxValue": 45,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 27,
+          "maxValue": 33,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 20,
+          "maxValue": 26,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 14,
+          "maxValue": 19,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 8,
+          "maxValue": 13,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 3,
+          "maxValue": 7,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "armour",
+      "name": "Armour",
+      "kind": "prefix",
+      "group": "armour",
+      "exclusiveGroup": "armour",
+      "slots": [
+        "helm",
+        "chest",
+        "gloves",
+        "boots",
+        "offhand"
+      ],
+      "tags": [
+        "defense",
+        "armour"
+      ],
+      "statKey": "armor",
+      "display": "+{value} to Armour",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 140,
+          "maxValue": 180,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 110,
+          "maxValue": 139,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 80,
+          "maxValue": 109,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 55,
+          "maxValue": 79,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 30,
+          "maxValue": 54,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 10,
+          "maxValue": 29,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "evasion",
+      "name": "Evasion Rating",
+      "kind": "prefix",
+      "group": "evasion",
+      "exclusiveGroup": "evasion",
+      "slots": [
+        "helm",
+        "chest",
+        "gloves",
+        "boots",
+        "offhand"
+      ],
+      "tags": [
+        "defense",
+        "evasion"
+      ],
+      "statKey": "evasion",
+      "display": "+{value} to Evasion Rating",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 140,
+          "maxValue": 180,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 110,
+          "maxValue": 139,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 80,
+          "maxValue": 109,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 55,
+          "maxValue": 79,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 30,
+          "maxValue": 54,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 10,
+          "maxValue": 29,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "energy_shield",
+      "name": "Maximum Energy Shield",
+      "kind": "prefix",
+      "group": "energy_shield",
+      "exclusiveGroup": "energy_shield",
+      "slots": [
+        "helm",
+        "chest",
+        "gloves",
+        "boots",
+        "offhand"
+      ],
+      "tags": [
+        "defense",
+        "energy-shield"
+      ],
+      "statKey": "energyShield",
+      "display": "+{value} to maximum Energy Shield",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 60,
+          "maxValue": 80,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 45,
+          "maxValue": 59,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 32,
+          "maxValue": 44,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 20,
+          "maxValue": 31,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 10,
+          "maxValue": 19,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 4,
+          "maxValue": 9,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "weapon_physical",
+      "name": "Increased Physical Damage",
+      "kind": "prefix",
+      "group": "weapon_physical",
+      "exclusiveGroup": "weapon_physical",
+      "slots": [
+        "weapon"
+      ],
+      "tags": [
+        "weapon",
+        "physical",
+        "damage"
+      ],
+      "statKey": "physicalPercent",
+      "display": "+{value}% increased Physical Damage",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 38,
+          "maxValue": 50,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 30,
+          "maxValue": 37,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 22,
+          "maxValue": 29,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 15,
+          "maxValue": 21,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 9,
+          "maxValue": 14,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 4,
+          "maxValue": 8,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "attack_speed",
+      "name": "Attack Speed",
+      "kind": "suffix",
+      "group": "attack_speed",
+      "exclusiveGroup": "attack_speed",
+      "slots": [
+        "weapon",
+        "gloves"
+      ],
+      "tags": [
+        "attack",
+        "speed"
+      ],
+      "statKey": "attackSpeedPercent",
+      "display": "+{value}% increased Attack Speed",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 18,
+          "maxValue": 24,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 14,
+          "maxValue": 17,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 10,
+          "maxValue": 13,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 7,
+          "maxValue": 9,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 4,
+          "maxValue": 6,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 2,
+          "maxValue": 3,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "cast_speed",
+      "name": "Cast Speed",
+      "kind": "suffix",
+      "group": "cast_speed",
+      "exclusiveGroup": "cast_speed",
+      "slots": [
+        "weapon",
+        "gloves",
+        "amulet",
+        "ring"
+      ],
+      "tags": [
+        "caster",
+        "speed"
+      ],
+      "statKey": "castSpeedPercent",
+      "display": "+{value}% increased Cast Speed",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 18,
+          "maxValue": 24,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 14,
+          "maxValue": 17,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 10,
+          "maxValue": 13,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 7,
+          "maxValue": 9,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 4,
+          "maxValue": 6,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 2,
+          "maxValue": 3,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "critical_chance",
+      "name": "Critical Strike Chance",
+      "kind": "prefix",
+      "group": "critical_chance",
+      "exclusiveGroup": "critical_chance",
+      "slots": [
+        "weapon"
+      ],
+      "tags": [
+        "critical",
+        "attack"
+      ],
+      "statKey": "critChancePercent",
+      "display": "+{value}% increased Critical Strike Chance",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 28,
+          "maxValue": 38,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 21,
+          "maxValue": 27,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 15,
+          "maxValue": 20,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 10,
+          "maxValue": 14,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 6,
+          "maxValue": 9,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 3,
+          "maxValue": 5,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "critical_multiplier",
+      "name": "Critical Strike Multiplier",
+      "kind": "suffix",
+      "group": "critical_multiplier",
+      "exclusiveGroup": "critical_multiplier",
+      "slots": [
+        "weapon",
+        "amulet",
+        "ring"
+      ],
+      "tags": [
+        "critical",
+        "attack"
+      ],
+      "statKey": "criticalMultiplier",
+      "display": "+{value}% to Critical Strike Multiplier",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 24,
+          "maxValue": 34,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 18,
+          "maxValue": 23,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 13,
+          "maxValue": 17,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 9,
+          "maxValue": 12,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 5,
+          "maxValue": 8,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 2,
+          "maxValue": 4,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "spell_damage",
+      "name": "Increased Spell Damage",
+      "kind": "prefix",
+      "group": "spell_damage",
+      "exclusiveGroup": "spell_damage",
+      "slots": [
+        "weapon",
+        "amulet",
+        "ring"
+      ],
+      "tags": [
+        "spell",
+        "caster",
+        "damage"
+      ],
+      "statKey": "spellPower",
+      "display": "+{value}% increased Spell Damage",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 38,
+          "maxValue": 50,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 30,
+          "maxValue": 37,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 22,
+          "maxValue": 29,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 15,
+          "maxValue": 21,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 9,
+          "maxValue": 14,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 4,
+          "maxValue": 8,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "stun_threshold",
+      "name": "Increased Stun Threshold",
+      "kind": "prefix",
+      "group": "stun_threshold",
+      "exclusiveGroup": "stun_threshold",
+      "slots": [
+        "helm",
+        "chest",
+        "boots",
+        "offhand"
+      ],
+      "tags": [
+        "defense",
+        "stun"
+      ],
+      "statKey": "stunThreshold",
+      "display": "+{value}% increased Stun Threshold",
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 80,
+          "minValue": 18,
+          "maxValue": 24,
+          "weight": 3
+        },
+        {
+          "tier": 2,
+          "minLevel": 64,
+          "minValue": 14,
+          "maxValue": 17,
+          "weight": 5
+        },
+        {
+          "tier": 3,
+          "minLevel": 48,
+          "minValue": 10,
+          "maxValue": 13,
+          "weight": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 32,
+          "minValue": 7,
+          "maxValue": 9,
+          "weight": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 16,
+          "minValue": 4,
+          "maxValue": 6,
+          "weight": 16
+        },
+        {
+          "tier": 6,
+          "minLevel": 1,
+          "minValue": 2,
+          "maxValue": 3,
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "id": "fire_damage_flat",
+      "name": "Fire Damage",
+      "kind": "prefix",
+      "group": "fire_damage_flat",
+      "exclusiveGroup": "fire_damage_flat",
+      "slots": ["weapon"],
+      "tags": ["damage", "fire", "elemental", "weapon"],
+      "statKey": "fireDamageFlat",
+      "display": "Adds {value} to Fire Damage",
+      "tiers": [
+        { "tier": 1, "minLevel": 80, "minValue": 40, "maxValue": 55, "weight": 3 },
+        { "tier": 2, "minLevel": 64, "minValue": 30, "maxValue": 39, "weight": 5 },
+        { "tier": 3, "minLevel": 48, "minValue": 20, "maxValue": 29, "weight": 8 },
+        { "tier": 4, "minLevel": 32, "minValue": 13, "maxValue": 19, "weight": 12 },
+        { "tier": 5, "minLevel": 16, "minValue": 7, "maxValue": 12, "weight": 16 },
+        { "tier": 6, "minLevel": 1, "minValue": 3, "maxValue": 6, "weight": 20 }
+      ]
+    },
+    {
+      "id": "fire_damage_percent",
+      "name": "Increased Fire Damage",
+      "kind": "prefix",
+      "group": "fire_damage_percent",
+      "exclusiveGroup": "fire_damage_percent",
+      "slots": ["weapon"],
+      "tags": ["damage", "fire", "elemental", "weapon"],
+      "statKey": "fireDamagePercent",
+      "display": "+{value}% increased Fire Damage",
+      "tiers": [
+        { "tier": 1, "minLevel": 80, "minValue": 38, "maxValue": 50, "weight": 3 },
+        { "tier": 2, "minLevel": 64, "minValue": 30, "maxValue": 37, "weight": 5 },
+        { "tier": 3, "minLevel": 48, "minValue": 22, "maxValue": 29, "weight": 8 },
+        { "tier": 4, "minLevel": 32, "minValue": 15, "maxValue": 21, "weight": 12 },
+        { "tier": 5, "minLevel": 16, "minValue": 9, "maxValue": 14, "weight": 16 },
+        { "tier": 6, "minLevel": 1, "minValue": 4, "maxValue": 8, "weight": 20 }
+      ]
+    },
+    {
+      "id": "cold_damage_flat",
+      "name": "Cold Damage",
+      "kind": "prefix",
+      "group": "cold_damage_flat",
+      "exclusiveGroup": "cold_damage_flat",
+      "slots": ["weapon"],
+      "tags": ["damage", "cold", "elemental", "weapon"],
+      "statKey": "coldDamageFlat",
+      "display": "Adds {value} to Cold Damage",
+      "tiers": [
+        { "tier": 1, "minLevel": 80, "minValue": 40, "maxValue": 55, "weight": 3 },
+        { "tier": 2, "minLevel": 64, "minValue": 30, "maxValue": 39, "weight": 5 },
+        { "tier": 3, "minLevel": 48, "minValue": 20, "maxValue": 29, "weight": 8 },
+        { "tier": 4, "minLevel": 32, "minValue": 13, "maxValue": 19, "weight": 12 },
+        { "tier": 5, "minLevel": 16, "minValue": 7, "maxValue": 12, "weight": 16 },
+        { "tier": 6, "minLevel": 1, "minValue": 3, "maxValue": 6, "weight": 20 }
+      ]
+    },
+    {
+      "id": "cold_damage_percent",
+      "name": "Increased Cold Damage",
+      "kind": "prefix",
+      "group": "cold_damage_percent",
+      "exclusiveGroup": "cold_damage_percent",
+      "slots": ["weapon"],
+      "tags": ["damage", "cold", "elemental", "weapon"],
+      "statKey": "coldDamagePercent",
+      "display": "+{value}% increased Cold Damage",
+      "tiers": [
+        { "tier": 1, "minLevel": 80, "minValue": 38, "maxValue": 50, "weight": 3 },
+        { "tier": 2, "minLevel": 64, "minValue": 30, "maxValue": 37, "weight": 5 },
+        { "tier": 3, "minLevel": 48, "minValue": 22, "maxValue": 29, "weight": 8 },
+        { "tier": 4, "minLevel": 32, "minValue": 15, "maxValue": 21, "weight": 12 },
+        { "tier": 5, "minLevel": 16, "minValue": 9, "maxValue": 14, "weight": 16 },
+        { "tier": 6, "minLevel": 1, "minValue": 4, "maxValue": 8, "weight": 20 }
+      ]
+    },
+    {
+      "id": "lightning_damage_flat",
+      "name": "Lightning Damage",
+      "kind": "prefix",
+      "group": "lightning_damage_flat",
+      "exclusiveGroup": "lightning_damage_flat",
+      "slots": ["weapon"],
+      "tags": ["damage", "lightning", "elemental", "weapon"],
+      "statKey": "lightningDamageFlat",
+      "display": "Adds {value} to Lightning Damage",
+      "tiers": [
+        { "tier": 1, "minLevel": 80, "minValue": 40, "maxValue": 55, "weight": 3 },
+        { "tier": 2, "minLevel": 64, "minValue": 30, "maxValue": 39, "weight": 5 },
+        { "tier": 3, "minLevel": 48, "minValue": 20, "maxValue": 29, "weight": 8 },
+        { "tier": 4, "minLevel": 32, "minValue": 13, "maxValue": 19, "weight": 12 },
+        { "tier": 5, "minLevel": 16, "minValue": 7, "maxValue": 12, "weight": 16 },
+        { "tier": 6, "minLevel": 1, "minValue": 3, "maxValue": 6, "weight": 20 }
+      ]
+    },
+    {
+      "id": "lightning_damage_percent",
+      "name": "Increased Lightning Damage",
+      "kind": "prefix",
+      "group": "lightning_damage_percent",
+      "exclusiveGroup": "lightning_damage_percent",
+      "slots": ["weapon"],
+      "tags": ["damage", "lightning", "elemental", "weapon"],
+      "statKey": "lightningDamagePercent",
+      "display": "+{value}% increased Lightning Damage",
+      "tiers": [
+        { "tier": 1, "minLevel": 80, "minValue": 38, "maxValue": 50, "weight": 3 },
+        { "tier": 2, "minLevel": 64, "minValue": 30, "maxValue": 37, "weight": 5 },
+        { "tier": 3, "minLevel": 48, "minValue": 22, "maxValue": 29, "weight": 8 },
+        { "tier": 4, "minLevel": 32, "minValue": 15, "maxValue": 21, "weight": 12 },
+        { "tier": 5, "minLevel": 16, "minValue": 9, "maxValue": 14, "weight": 16 },
+        { "tier": 6, "minLevel": 1, "minValue": 4, "maxValue": 8, "weight": 20 }
+      ]
+    },
+    {
+      "id": "life_regen",
+      "name": "Life Regeneration",
+      "kind": "prefix",
+      "group": "life_regen",
+      "exclusiveGroup": "life_regen",
+      "slots": ["helm", "chest", "gloves", "boots", "amulet", "ring", "belt", "offhand"],
+      "tags": ["life", "resource", "regeneration"],
+      "statKey": "lifeRegen",
+      "display": "Regenerate {value} Life per second",
+      "tiers": [
+        { "tier": 1, "minLevel": 80, "minValue": 10, "maxValue": 13, "weight": 3 },
+        { "tier": 2, "minLevel": 64, "minValue": 7, "maxValue": 9, "weight": 5 },
+        { "tier": 3, "minLevel": 48, "minValue": 5, "maxValue": 6, "weight": 8 },
+        { "tier": 4, "minLevel": 32, "minValue": 3, "maxValue": 4, "weight": 12 },
+        { "tier": 5, "minLevel": 16, "minValue": 2, "maxValue": 3, "weight": 16 },
+        { "tier": 6, "minLevel": 1, "minValue": 1, "maxValue": 2, "weight": 20 }
+      ]
+    },
+    {
+      "id": "mana_regen",
+      "name": "Mana Regeneration",
+      "kind": "prefix",
+      "group": "mana_regen",
+      "exclusiveGroup": "mana_regen",
+      "slots": ["amulet", "ring", "belt", "offhand"],
+      "tags": ["mana", "resource", "regeneration"],
+      "statKey": "manaRegen",
+      "display": "Regenerate {value} Mana per second",
+      "tiers": [
+        { "tier": 1, "minLevel": 80, "minValue": 8, "maxValue": 11, "weight": 3 },
+        { "tier": 2, "minLevel": 64, "minValue": 6, "maxValue": 7, "weight": 5 },
+        { "tier": 3, "minLevel": 48, "minValue": 4, "maxValue": 5, "weight": 8 },
+        { "tier": 4, "minLevel": 32, "minValue": 3, "maxValue": 3, "weight": 12 },
+        { "tier": 5, "minLevel": 16, "minValue": 2, "maxValue": 2, "weight": 16 },
+        { "tier": 6, "minLevel": 1, "minValue": 1, "maxValue": 1, "weight": 20 }
+      ]
+    },
+    {
+      "id": "item_rarity",
+      "name": "Rarity of Items Found",
+      "kind": "suffix",
+      "group": "item_rarity",
+      "exclusiveGroup": "item_rarity",
+      "slots": ["amulet", "ring", "belt"],
+      "tags": ["rarity", "utility"],
+      "statKey": "itemRarityPercent",
+      "display": "+{value}% increased Rarity of Items found",
+      "tiers": [
+        { "tier": 1, "minLevel": 80, "minValue": 24, "maxValue": 30, "weight": 3 },
+        { "tier": 2, "minLevel": 64, "minValue": 18, "maxValue": 23, "weight": 5 },
+        { "tier": 3, "minLevel": 48, "minValue": 13, "maxValue": 17, "weight": 8 },
+        { "tier": 4, "minLevel": 32, "minValue": 9, "maxValue": 12, "weight": 12 },
+        { "tier": 5, "minLevel": 16, "minValue": 5, "maxValue": 8, "weight": 16 },
+        { "tier": 6, "minLevel": 1, "minValue": 2, "maxValue": 4, "weight": 20 }
+      ]
+    }
+  ]
+}
